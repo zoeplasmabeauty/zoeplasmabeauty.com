@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 /**
  * src\components\sections\Gallery.tsx
  * 
@@ -91,7 +93,7 @@ export default function Gallery() {
                 
                 {/* CAJA IMAGEN 1: ANTES */}
                 <div className="relative overflow-hidden">
-                  <img 
+                  <Image 
                     src={item.beforeImage} 
                     alt={`Antes del tratamiento: ${item.treatment}`} 
                     className="h-64 w-full object-cover sm:h-80 transition-transform duration-500 group-hover:scale-105"
@@ -104,7 +106,7 @@ export default function Gallery() {
 
                 {/* CAJA IMAGEN 2: DESPUÉS */}
                 <div className="relative overflow-hidden">
-                  <img 
+                  <Image 
                     src={item.afterImage} 
                     alt={`Después del tratamiento: ${item.treatment}`} 
                     className="h-64 w-full object-cover sm:h-80 transition-transform duration-500 group-hover:scale-105"

@@ -110,7 +110,7 @@ export default function Footer() {
           {/* DISCLAIMER MÉDICO (Innegociable en tu nicho) */}
           <div className="mb-8 rounded-xl bg-gray-950 p-6 border border-gray-900 text-center md:text-left">
             <p className="text-xs leading-relaxed text-gray-500">
-              <strong className="text-gray-400">Aviso Legal:</strong> Los resultados de los tratamientos con tecnología plasma (Fibroblast) pueden variar significativamente según el tipo de piel, la edad, el historial médico y el cumplimiento de los cuidados posteriores de cada paciente. Las imágenes de "Antes y Después" publicadas en este sitio representan casos reales, pero no garantizan resultados idénticos. La información proporcionada en este sitio web tiene fines exclusivamente educativos y no reemplaza la consulta, el diagnóstico o el consejo médico profesional.
+              <strong className="text-gray-400">Aviso Legal:</strong> Los resultados de los tratamientos con tecnología plasma (Fibroblast) pueden variar significativamente según el tipo de piel, la edad, el historial médico y el cumplimiento de los cuidados posteriores de cada paciente. Las imágenes de &quot;Antes y Después&quot; publicadas en este sitio representan casos reales, pero no garantizan resultados idénticos. La información proporcionada en este sitio web tiene fines exclusivamente educativos y no reemplaza la consulta, el diagnóstico o el consejo médico profesional.
             </p>
           </div>
 

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 /**
  * src\components\sections\Services.tsx
  * 
@@ -90,7 +92,7 @@ export default function Services() {
               {/* COLUMNA 1: CONTENEDOR DE IMAGEN (Replicando image_3.png) */}
               <div className="relative w-full overflow-hidden md:w-2/5">
                 {/* La Imagen Real */}
-                <img 
+                <Image 
                   src={service.imageUrl} 
                   alt={`Imagen ilustrativa del tratamiento: ${service.title}`} 
                   className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"

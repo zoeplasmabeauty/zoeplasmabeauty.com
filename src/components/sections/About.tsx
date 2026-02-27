@@ -68,13 +68,17 @@ export default function About() {
       threshold: 0.5, // Se dispara cuando el 50% de la caja es visible en pantalla
     });
 
-    if (counterRef.current) {
-      observer.observe(counterRef.current);
+    // CORRECCIÓN TÉCNICA: Guardamos la referencia actual en una constante
+    // para asegurar que la limpieza final tenga a quién apuntar.
+    const currentRef = counterRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     // Limpieza de memoria: cuando el componente se destruye, matamos al observador
     return () => {
-      if (counterRef.current) observer.unobserve(counterRef.current);
+      if (currentRef) observer.unobserve(currentRef);
     };
   }, []);
   // --- FIN DEL MOTOR DE ANIMACIÓN ---
