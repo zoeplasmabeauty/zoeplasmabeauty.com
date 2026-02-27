@@ -1,65 +1,75 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+
+// Configuración de metadatos para SEO básico de la página de espera
+export const metadata: Metadata = {
+  title: "Zoe plasma Beauty - Vanguardia en Estética",
+  description: "Sitio web en construcción. Próximamente revelaremos una nueva experiencia en tratamientos de belleza con plasma y equipos electrónicos.",
+};
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black p-6 text-white antialiased selection:bg-sky-800">
+      {/* Fondo con gradiente sutil y efecto de plasma eléctrico de fondo */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -inset-[100px] opacity-30">
+          <div className="absolute top-0 left-1/4 h-96 w-96 animate-pulse rounded-full bg-sky-950 blur-[120px]"></div>
+          <div className="absolute bottom-0 right-1/4 h-96 w-96 animate-pulse rounded-full bg-blue-950 blur-[120px] animation-delay-2000"></div>
+        </div>
+      </div>
+
+      {/* Contenido Principal */}
+      <div className="relative z-10 flex flex-col items-center text-center">
+        {/* Identidad de Marca */}
+        <header className="mb-16">
+          <h1 className="text-sm font-mono tracking-[0.3em] text-gray-500 uppercase">
+            Estética de Vanguardia
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+        </header>
+
+        {/* Mensaje Central */}
+        <div className="max-w-4xl">
+          <h2 className="mb-6 text-6xl font-extrabold tracking-tighter sm:text-7xl md:text-8xl">
+            Zoe <span className="text-sky-400">plasma</span> Beauty
+          </h2>
+          
+          <div className="mx-auto mb-10 h-1 w-24 rounded-full bg-white"></div>
+
+          <p className="mx-auto mb-16 max-w-2xl text-xl font-light leading-relaxed text-gray-300 md:text-2xl">
+            Estamos esculpiendo una experiencia digital revolucionaria para reflejar la excelencia de nuestros tratamientos electrónicos. Algo hermoso está llegando.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Tarjeta de Estado */}
+        <div className="rounded-3xl border border-gray-800 bg-gray-950/50 p-10 shadow-2xl backdrop-blur-sm">
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+            </span>
+            <h3 className="text-2xl font-bold tracking-tight text-white">
+              Sitio en Construcción
+            </h3>
+          </div>
+          <p className="mb-10 text-gray-400 max-w-md">
+            Próximamente podrás agendar tus turnos online y descubrir el poder de la tecnología plasma.
+          </p>
+          
+          {/* Botones de Acción (Placeholders) */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <button className="rounded-full bg-sky-500 px-8 py-3.5 text-black font-bold hover:bg-sky-400 transition-colors duration-200">
+              Síguenos en Instagram
+            </button>
+            <button className="rounded-full bg-white px-8 py-3.5 text-black font-bold hover:bg-gray-200 transition-colors duration-200">
+              Contacto WhatsApp
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Footer sutil */}
+      <footer className="absolute bottom-6 z-10 text-xs font-mono text-gray-700 tracking-wider uppercase">
+        &copy; 2024 Zoe plasma Beauty. Todos los derechos reservados.
+      </footer>
+    </main>
   );
 }
