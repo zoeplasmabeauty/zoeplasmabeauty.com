@@ -63,7 +63,7 @@ export default function Contact() {
                 <h3 className="text-xl font-bold text-white">WhatsApp Directo</h3>
                 <p className="mt-1 text-sm text-gray-400">Respuestas rápidas para agendar tu cita.</p>
                 <span className="mt-2 inline-block font-mono text-sm text-sky-400 group-hover:underline">
-                  +54 9 11 3643-9152
+                  +54 9 11 3385-0211
                 </span>
               </div>
             </a>
