@@ -48,7 +48,7 @@ export default function Contact() {
             
             {/* Tarjeta 1: WhatsApp (Prioridad #1 de conversión) */}
             <a 
-              href="https://wa.me/5491136439152" 
+              href="https://wa.me/5491133850211" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group flex items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900/40 p-6 transition-all hover:border-sky-500/50 hover:bg-gray-800/60"
@@ -70,7 +70,7 @@ export default function Contact() {
 
             {/* Tarjeta 2: Instagram */}
             <a 
-              href="https://instagram.com/zoe.plasmabeauty" 
+              href="https://instagram.com/making.beauty.estetica" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group flex items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900/40 p-6 transition-all hover:border-sky-500/50 hover:bg-gray-800/60"
@@ -85,7 +85,7 @@ export default function Contact() {
                 <h3 className="text-xl font-bold text-white">Mensaje Directo (DM)</h3>
                 <p className="mt-1 text-sm text-gray-400">Síguenos y escríbenos por Instagram.</p>
                 <span className="mt-2 inline-block font-mono text-sm text-sky-400 group-hover:underline">
-                  @zoe.plasmabeauty
+                  @making.beauty.estetica
                 </span>
               </div>
             </a>

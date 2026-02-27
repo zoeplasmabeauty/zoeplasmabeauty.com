@@ -105,7 +105,7 @@ export default function BookingPlaceholder() {
                 {/* BOTÓN DE CONVERSIÓN CRÍTICO (WhatsApp)
                     No olvides cambiar "NUMERO_DE_TELEFONO" por tu número real en formato internacional sin el '+' */}
                 <a 
-                  href="https://wa.me/5491136439152?text=Hola,%20vengo%20de%20la%20página%20web%20y%20deseo%20agendar%20una%20evaluación." 
+                  href="https://wa.me/5491133850211?text=Hola,%20vengo%20de%20la%20página%20web%20y%20deseo%20agendar%20una%20evaluación." 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="group flex w-full items-center justify-center gap-3 rounded-full bg-sky-500 px-8 py-4 font-bold text-black transition-all duration-300 hover:scale-105 hover:bg-sky-400 hover:shadow-[0_0_20px_rgba(14,165,233,0.4)]"
