@@ -20,9 +20,9 @@ export default function Footer() {
 
   return (
     // CONTENEDOR PRINCIPAL DEL FOOTER
-    // 'border-t border-gray-900' dibuja una línea sutil para separarlo de la sección de contacto.
-    // 'bg-black' mantiene la coherencia con el diseño "Dark Premium".
-    <footer className="border-t border-gray-900 bg-black pt-16 pb-8 text-white">
+    // INVERSIÓN VISUAL: Pasamos de 'bg-black text-white' a un blanco puro ('bg-white').
+    // Esto crea una base sólida y pulcra que "aterriza" la página.
+    <footer className="border-t border-[var(--color-zoe-blue)]/20 bg-white pt-16 pb-8 text-[var(--color-zoe-dark)]">
       
       <div className="mx-auto max-w-7xl px-6">
         
@@ -33,21 +33,21 @@ export default function Footer() {
           <div className="flex flex-col">
             {/* Logo textual interactivo que lleva al inicio */}
             <a href="#inicio" className="group mb-6 inline-block">
-              <span className="text-2xl font-extrabold tracking-tighter text-white transition-colors group-hover:text-sky-400">
-                Zoe <span className="text-sky-500">plasma</span>
+              <span className="text-2xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
+                Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
               </span>
             </a>
-            <p className="mb-6 text-sm leading-relaxed text-gray-400">
+            <p className="mb-6 text-sm font-medium leading-relaxed text-[var(--color-zoe-muted)]">
               Vanguardia en tratamientos estéticos no invasivos. 
               Elevamos tu belleza natural con tecnología electrónica de precisión y un enfoque seguro.
             </p>
             {/* Redes Sociales en versión minimalista */}
             <div className="flex gap-4">
               <a 
-                href="https://instagram.com/making.beauty.estetica" 
+                href="https://instagram.com/zoeplasmabeauty" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gray-500 transition-colors hover:text-sky-400"
+                className="text-[var(--color-zoe-muted)] transition-colors hover:text-[var(--color-zoe-blue)]"
                 aria-label="Instagram de Zoe Plasma Beauty"
               >
                 {/* Ícono de Instagram SVG puro */}
@@ -60,44 +60,44 @@ export default function Footer() {
 
           {/* COLUMNA 2: Enlaces Rápidos (Navegación) */}
           <div>
-            <h3 className="mb-6 font-mono text-sm font-bold tracking-widest text-white uppercase">
+            <h3 className="mb-6 font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
               Navegación
             </h3>
-            <ul className="space-y-4 text-sm text-gray-400">
+            <ul className="space-y-4 text-sm font-medium text-[var(--color-zoe-muted)]">
               <li>
-                <a href="#conocenos" className="transition-colors hover:text-sky-400">La Filosofía Zoe</a>
+                <a href="#conocenos" className="transition-colors hover:text-[var(--color-zoe-blue)]">La Filosofía Zoe</a>
               </li>
               <li>
-                <a href="#servicios" className="transition-colors hover:text-sky-400">Tratamientos</a>
+                <a href="#servicios" className="transition-colors hover:text-[var(--color-zoe-blue)]">Tratamientos</a>
               </li>
               <li>
-                <a href="#galeria" className="transition-colors hover:text-sky-400">Antes y Después</a>
+                <a href="#galeria" className="transition-colors hover:text-[var(--color-zoe-blue)]">Antes y Después</a>
               </li>
               <li>
-                <a href="#testimonios" className="transition-colors hover:text-sky-400">Testimonios</a>
+                <a href="#testimonios" className="transition-colors hover:text-[var(--color-zoe-blue)]">Testimonios</a>
               </li>
               <li>
-                <a href="#agendar" className="transition-colors hover:text-sky-400 text-sky-500 font-medium">Agendar Turno</a>
+                <a href="#agendar" className="font-bold text-[var(--color-zoe-blue)] transition-colors hover:text-[#4375af]">Agendar Turno</a>
               </li>
             </ul>
           </div>
 
           {/* COLUMNA 3: Contacto Legal/Soporte */}
           <div>
-            <h3 className="mb-6 font-mono text-sm font-bold tracking-widest text-white uppercase">
+            <h3 className="mb-6 font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
               Soporte
             </h3>
-            <ul className="space-y-4 text-sm text-gray-400">
+            <ul className="space-y-4 text-sm font-medium text-[var(--color-zoe-muted)]">
               <li>Buenos Aires, Argentina</li>
               <li>
-                <a href="mailto:contacto@zoeplasmabeauty.com" className="hover:text-sky-400 transition-colors">contacto@zoeplasmabeauty.com</a>
+                <a href="mailto:contacto@zoeplasmabeauty.com" className="transition-colors hover:text-[var(--color-zoe-blue)]">contacto@zoeplasmabeauty.com</a>
               </li>
               {/* Enlace simulado a futuras políticas de privacidad */}
               <li>
-                <a href="#" className="transition-colors hover:text-sky-400">Políticas de Privacidad</a>
+                <a href="#" className="transition-colors hover:text-[var(--color-zoe-blue)]">Políticas de Privacidad</a>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-sky-400">Términos y Condiciones</a>
+                <a href="#" className="transition-colors hover:text-[var(--color-zoe-blue)]">Términos y Condiciones</a>
               </li>
             </ul>
           </div>
@@ -105,17 +105,18 @@ export default function Footer() {
         </div>
 
         {/* ÁREA INFERIOR: Disclaimer Médico y Copyright */}
-        <div className="mt-16 border-t border-gray-900 pt-8">
+        <div className="mt-16 border-t border-[var(--color-zoe-blue)]/10 pt-8">
           
           {/* DISCLAIMER MÉDICO (Innegociable en tu nicho) */}
-          <div className="mb-8 rounded-xl bg-gray-950 p-6 border border-gray-900 text-center md:text-left">
-            <p className="text-xs leading-relaxed text-gray-500">
-              <strong className="text-gray-400">Aviso Legal:</strong> Los resultados de los tratamientos con tecnología plasma (Fibroblast) pueden variar significativamente según el tipo de piel, la edad, el historial médico y el cumplimiento de los cuidados posteriores de cada paciente. Las imágenes de &quot;Antes y Después&quot; publicadas en este sitio representan casos reales, pero no garantizan resultados idénticos. La información proporcionada en este sitio web tiene fines exclusivamente educativos y no reemplaza la consulta, el diagnóstico o el consejo médico profesional.
+          {/* INVERSIÓN VISUAL: Caja con el tono menta de la marca pero atenuado para no competir */}
+          <div className="mb-8 rounded-xl border border-[var(--color-zoe-blue)]/10 bg-[var(--color-zoe-mint)]/30 p-6 text-center md:text-left">
+            <p className="text-xs font-medium leading-relaxed text-[var(--color-zoe-muted)]">
+              <strong className="font-bold text-[var(--color-zoe-dark)]">Aviso Legal:</strong> Los resultados de los tratamientos con tecnología plasma (Fibroblast) pueden variar significativamente según el tipo de piel, la edad, el historial médico y el cumplimiento de los cuidados posteriores de cada paciente. Las imágenes de &quot;Antes y Después&quot; publicadas en este sitio representan casos reales, pero no garantizan resultados idénticos. La información proporcionada en este sitio web tiene fines exclusivamente educativos y no reemplaza la consulta, el diagnóstico o el consejo médico profesional.
             </p>
           </div>
 
           {/* COPYRIGHT Y CRÉDITOS */}
-          <div className="flex flex-col items-center justify-between gap-4 text-xs text-gray-600 md:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 text-xs font-medium text-[var(--color-zoe-muted)]/80 md:flex-row">
             <p>
               &copy; {currentYear} Zoe Plasma Beauty. Todos los derechos reservados.
             </p>

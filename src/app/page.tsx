@@ -10,7 +10,10 @@ import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-sky-800">
+    // INVERSIÓN ARQUITECTÓNICA: 
+    // Pasamos de 'bg-black text-white' a las variables dinámicas de tu nueva marca.
+    // 'selection:bg-zoe-blue' hará que cuando el usuario subraye un texto, se vea en tu azul de acento.
+    <div className="min-h-screen bg-[var(--color-zoe-mint)] text-[var(--color-zoe-dark)] selection:bg-[var(--color-zoe-blue)] selection:text-white">
       <Navbar />
       <main>
         <Hero />

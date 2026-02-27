@@ -1,26 +1,30 @@
 @import "tailwindcss";
 
+/* * ARQUITECTURA DE COLOR: "Clinical Light"
+ * Inyectamos las variables de tu marca directamente en el motor de Tailwind v4.
+ * A partir de ahora, puedes usar clases como 'bg-zoe-mint' o 'text-zoe-blue' en cualquier archivo.
+ */
+@theme {
+  --color-zoe-mint: #d5fffd;
+  --color-zoe-blue: #568dcd;
+  --color-zoe-dark: #0f172a;
+  --color-zoe-muted: #475569;
+}
+
+/* * CONTROL DE ESTADO GLOBAL
+ * Forzamos la paleta clara en la raíz del documento. 
+ * Se elimina deliberadamente la media query de "dark mode" para proteger la integridad del diseño.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: var(--color-zoe-mint);
+  --foreground: var(--color-zoe-dark);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* Suavizado de fuentes para monitores de alta resolución */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

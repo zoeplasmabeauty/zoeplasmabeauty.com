@@ -2,8 +2,7 @@ import Image from "next/image";
 
 /**
  * src\components\sections\Services.tsx
- * 
- * COMPONENTE: Services.tsx
+ * * COMPONENTE: Services.tsx
  * ARQUITECTURA: Sección de Landing Page / Catálogo de Conversión
  * * PROPÓSITO ESTRATÉGICO: 
  * Presentar la oferta comercial de "Zoe Plasma Beauty" de forma clara, premium y accionable.
@@ -58,20 +57,21 @@ export default function Services() {
 
   return (
     // CONTENEDOR DE SECCIÓN
-    <section id="servicios" className="scroll-mt-24 bg-black px-6 py-24 text-white">
+    // INVERSIÓN VISUAL: Removido bg-black y text-white para heredar el entorno Clinical Light.
+    <section id="servicios" className="scroll-mt-24 px-6 py-24">
       
       {/* CAJA CENTRAL */}
       <div className="mx-auto max-w-7xl">
         
         {/* ENCABEZADO DE LA SECCIÓN (Estilo mantenido) */}
         <div className="mb-16 text-center">
-          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-sky-500 uppercase">
+          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
             Catálogo de Tratamientos
           </span>
-          <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Nuestros <span className="text-gray-400">Servicios</span>
+          <h2 className="text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
+            Nuestros <span className="text-[var(--color-zoe-blue)]">Servicios</span>
           </h2>
-          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-sky-500"></div>
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
         </div>
 
         {/* GRILLA DE SERVICIOS:
@@ -84,9 +84,10 @@ export default function Services() {
           {servicesData.map((service, index) => (
             // TARJETA DE SERVICIO PREMIUM (Layout Asimétrico):
             // Divide la tarjeta en dos columnas: 40% imagen, 60% texto.
+            // INVERSIÓN VISUAL: De fondo oscuro a cristal esmerilado blanco (bg-white/80).
             <div 
               key={index} 
-              className="group relative flex flex-col items-stretch overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/50 hover:bg-gray-800/60 hover:shadow-2xl hover:shadow-sky-500/10 md:flex-row"
+              className="group relative flex flex-col items-stretch overflow-hidden rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-zoe-blue)]/40 hover:bg-white hover:shadow-xl hover:shadow-[var(--color-zoe-blue)]/10 md:flex-row"
             >
               
               {/* COLUMNA 1: CONTENEDOR DE IMAGEN (Replicando image_3.png) */}
@@ -103,8 +104,9 @@ export default function Services() {
                     Esta capa negra absoluta se superpone a la imagen y crea el degradado 
                     que se funde con el fondo de la tarjeta.
                     - En móvil: Difumina de abajo hacia arriba.
-                    - En escritorio (md): Difumina de izquierda a derecha. */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/70 to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-950"></div>
+                    - En escritorio (md): Difumina de izquierda a derecha. 
+                    INVERSIÓN VISUAL: Ahora difumina hacia blanco/transparente en lugar de negro. */}
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent md:bg-gradient-to-r md:from-transparent md:via-white/50 md:to-white"></div>
               </div>
 
               {/* COLUMNA 2: CONTENIDO DE TEXTO (A la derecha, como en el ejemplo) */}
@@ -113,7 +115,7 @@ export default function Services() {
                 {/* ÁREA SUPERIOR: Etiqueta (Tag) "Más Popular" (o similar) */}
                 <div className="mb-6 flex justify-end">
                   {service.tag && (
-                    <span className="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-bold tracking-wider text-sky-400 uppercase">
+                    <span className="rounded-full bg-[var(--color-zoe-blue)]/10 px-3 py-1 text-xs font-bold tracking-wider text-[var(--color-zoe-blue)] uppercase">
                       {service.tag}
                     </span>
                   )}
@@ -121,16 +123,16 @@ export default function Services() {
 
                 {/* ÁREA CENTRAL: Información del servicio */}
                 <div className="mb-10 flex-grow">
-                  <h3 className="mb-4 text-3xl font-bold text-white transition-colors group-hover:text-sky-300">
+                  <h3 className="mb-4 text-3xl font-bold text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
                     {service.title}
                   </h3>
                   {/* Descripción técnica, en mayúsculas como en el ejemplo */}
-                  <p className="mb-6 text-base font-normal leading-relaxed text-gray-300 uppercase">
+                  <p className="mb-6 text-base font-medium leading-relaxed text-[var(--color-zoe-muted)] uppercase">
                     {service.description}
                   </p>
                   
                   {/* Ficha técnica mínima (Duración), alineada a la derecha */}
-                  <div className="flex items-center justify-end gap-2 text-sm font-medium text-gray-500">
+                  <div className="flex items-center justify-end gap-2 text-sm font-bold text-[var(--color-zoe-muted)] opacity-80">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -140,10 +142,10 @@ export default function Services() {
 
                 {/* ÁREA INFERIOR: Call To Action (Botón de Agendar) */}
                 {/* Separador sutil */}
-                <div className="mt-auto border-t border-gray-800/80 pt-6">
+                <div className="mt-auto border-t border-[var(--color-zoe-blue)]/10 pt-6">
                   <a 
                     href="#agendar" 
-                    className="flex items-center justify-end gap-3 text-base font-bold text-white transition-colors hover:text-sky-400"
+                    className="flex items-center justify-end gap-3 text-base font-extrabold text-[var(--color-zoe-blue)] transition-colors hover:text-[#4375af]"
                   >
                     {/* El texto del botón coincide con el ejemplo */}
                     Agendar este tratamiento

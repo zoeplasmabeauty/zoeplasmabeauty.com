@@ -3,6 +3,7 @@ import Image from "next/image";
 /**
  * src\components\sections\Gallery.tsx
  * * COMPONENTE: Gallery.tsx
+ * 
  * ARQUITECTURA: Sección de Landing Page / Prueba Social Visual (Antes y Después)
  * * PROPÓSITO ESTRATÉGICO: 
  * Derribar el escepticismo del usuario. En la industria estética, la evidencia empírica 
@@ -51,22 +52,22 @@ export default function Gallery() {
 
   return (
     // CONTENEDOR DE SECCIÓN
-    // 'bg-gray-950' le da un tono ligeramente distinto al negro puro de las otras secciones
-    // para crear una separación visual subconsciente al hacer scroll.
-    <section id="galeria" className="scroll-mt-24 bg-gray-950 px-6 py-24 text-white border-t border-gray-900">
+    // INVERSIÓN VISUAL: Removido 'bg-gray-950 text-white' para heredar el Clinical Light.
+    // El borde separador ahora es un azul muy tenue.
+    <section id="galeria" className="scroll-mt-24 px-6 py-24 border-t border-[var(--color-zoe-blue)]/10">
       
       <div className="mx-auto max-w-7xl">
         
         {/* ENCABEZADO DE LA SECCIÓN */}
         <div className="mb-16 text-center">
-          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-sky-500 uppercase">
+          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
             Evidencia Clínica
           </span>
-          <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Antes y <span className="text-gray-400">Después</span>
+          <h2 className="text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
+            Antes y <span className="text-[var(--color-zoe-blue)]">Después</span>
           </h2>
-          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-sky-500"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400">
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
+          <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-[var(--color-zoe-muted)]">
             Resultados reales en pacientes reales. La precisión de nuestros equipos 
             electrónicos se traduce en transformaciones visibles y estéticas.
           </p>
@@ -80,15 +81,17 @@ export default function Gallery() {
           {/* ITERACIÓN DEL DICCIONARIO DE CASOS */}
           {galleryData.map((item, index) => (
             // TARJETA CONTENEDORA DEL CASO
+            // INVERSIÓN VISUAL: De fondo negro puro a cristal blanco (bg-white/80).
             <div 
               key={index} 
-              className="group overflow-hidden rounded-3xl border border-gray-800 bg-black shadow-2xl transition-all duration-300 hover:border-sky-500/30"
+              className="group overflow-hidden rounded-3xl border border-white/60 bg-white/80 backdrop-blur-sm shadow-lg transition-all duration-300 hover:border-[var(--color-zoe-blue)]/30 hover:shadow-xl hover:-translate-y-1"
             >
               
               {/* ÁREA VISUAL: Comparativa Split-View */}
               {/* Usamos un grid interno de 2 columnas exactas (grid-cols-2) para forzar 
                   que la imagen de antes y la de después ocupen exactamente el 50% cada una. */}
-              <div className="grid grid-cols-2 divide-x divide-gray-800">
+              {/* INVERSIÓN VISUAL: Línea divisoria blanca en lugar de gris oscura */}
+              <div className="grid grid-cols-2 divide-x divide-white">
                 
                 {/* CAJA IMAGEN 1: ANTES */}
                 {/* Corrección Arquitectónica: Dimensiones ('h-64 w-full sm:h-80') trasladadas al div padre */}
@@ -101,7 +104,8 @@ export default function Gallery() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* ETIQUETA ABSOLUTA: Anclada arriba a la izquierda */}
-                  <div className="absolute top-4 left-4 rounded bg-black/80 px-3 py-1 text-xs font-bold tracking-widest text-gray-400 uppercase backdrop-blur-sm">
+                  {/* INVERSIÓN VISUAL: Etiqueta clara para no ensuciar la foto */}
+                  <div className="absolute top-4 left-4 rounded bg-white/90 px-3 py-1 text-xs font-bold tracking-widest text-[var(--color-zoe-dark)] uppercase backdrop-blur-md shadow-sm">
                     Antes
                   </div>
                 </div>
@@ -117,7 +121,8 @@ export default function Gallery() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* ETIQUETA ABSOLUTA: Anclada arriba a la derecha, color destacado */}
-                  <div className="absolute top-4 right-4 rounded bg-sky-500/90 px-3 py-1 text-xs font-bold tracking-widest text-black uppercase backdrop-blur-sm">
+                  {/* INVERSIÓN VISUAL: Azul de marca sólido para destacar el resultado */}
+                  <div className="absolute top-4 right-4 rounded bg-[var(--color-zoe-blue)]/90 px-3 py-1 text-xs font-bold tracking-widest text-white uppercase backdrop-blur-md shadow-sm">
                     Después
                   </div>
                 </div>
@@ -126,10 +131,10 @@ export default function Gallery() {
 
               {/* ÁREA INFERIOR: Contexto Clínico */}
               <div className="p-6">
-                <h3 className="mb-2 text-xl font-bold text-white">
+                <h3 className="mb-2 text-xl font-bold text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
                   {item.treatment}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm font-medium text-[var(--color-zoe-muted)]">
                   {item.description}
                 </p>
               </div>

@@ -4,8 +4,7 @@
 
 /**
  * src\components\layout\Navbar.tsx
- * 
- * COMPONENTE: Navbar.tsx
+ * * COMPONENTE: Navbar.tsx
  * ARQUITECTURA: Layout / Navegación Global (Persistente)
  * * PROPÓSITO ESTRATÉGICO: 
  * Mantener la identidad de marca siempre visible y proporcionar una vía de escape rápida 
@@ -36,10 +35,8 @@ export default function Navbar() {
 
   return (
     // CONTENEDOR PRINCIPAL (NAV): 
-    // 'fixed z-50': Lo ancla al techo de la pantalla y asegura que esté por encima de todo.
-    // 'bg-black/80 backdrop-blur-md': Aplica el efecto premium de vidrio esmerilado oscuro.
-    // 'border-b': Agrega una línea sutil inferior para separar la barra del contenido.
-    <nav className="fixed top-0 left-0 z-50 w-full border-b border-gray-900 bg-black/80 backdrop-blur-md transition-all duration-300">
+    // INVERSIÓN VISUAL: Pasamos a un cristal blanco (bg-white/90) y un borde azul sutil.
+    <nav className="fixed top-0 left-0 z-50 w-full border-b border-[var(--color-zoe-blue)]/20 bg-white/90 backdrop-blur-md transition-all duration-300">
       
       {/* CAJA DE ALINEACIÓN: Limita el ancho máximo para pantallas gigantes y centra el contenido */}
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -47,20 +44,20 @@ export default function Navbar() {
         {/* BLOQUE DE MARCA (LOGO): 
             Al hacer clic, el usuario siempre vuelve arriba. */}
         <a href="#inicio" className="group flex items-center gap-2">
-          <span className="text-xl font-extrabold tracking-tighter text-white transition-colors group-hover:text-sky-400">
-            Zoe <span className="text-sky-500">plasma</span>
+          <span className="text-xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
+            Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
           </span>
         </a>
 
         {/* NAVEGACIÓN DE ESCRITORIO (Oculta en móviles 'hidden md:flex') */}
         <div className="hidden items-center gap-8 md:flex">
-          <ul className="flex gap-6 text-sm font-medium text-gray-300">
+          <ul className="flex gap-6 text-sm font-medium text-[var(--color-zoe-muted)]">
             {/* ITERACIÓN DINÁMICA: Mapea el diccionario de enlaces y crea un <li> por cada uno */}
             {navLinks.map((link) => (
               <li key={link.name}>
                 <a 
                   href={link.href} 
-                  className="transition-colors hover:text-sky-400"
+                  className="transition-colors hover:text-[var(--color-zoe-blue)]"
                 >
                   {link.name}
                 </a>
@@ -72,7 +69,7 @@ export default function Navbar() {
               Separado de la lista estándar para darle peso visual jerárquico. */}
           <a 
             href="#agendar" 
-            className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-black transition-transform hover:scale-105 hover:bg-sky-400"
+            className="rounded-full bg-[var(--color-zoe-blue)] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[var(--color-zoe-blue)]/20 transition-all hover:scale-105 hover:bg-[#4375af]"
           >
             Agendar Turno
           </a>
@@ -80,7 +77,7 @@ export default function Navbar() {
 
         {/* BOTÓN HAMBURGUESA PARA MÓVILES (Oculto en escritorio 'md:hidden') */}
         <button 
-          className="p-2 text-gray-400 md:hidden"
+          className="p-2 text-[var(--color-zoe-dark)] md:hidden transition-colors hover:text-[var(--color-zoe-blue)]"
           // Al hacer clic, invierte el estado actual (si estaba abierto, lo cierra).
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Alternar menú"
@@ -99,14 +96,15 @@ export default function Navbar() {
       </div>
 
       {/* MENÚ DESPLEGABLE MÓVIL: Solo se renderiza si 'isMobileMenuOpen' es true */}
+      {/* INVERSIÓN VISUAL: Fondo blanco sólido para garantizar legibilidad en móviles */}
       {isMobileMenuOpen && (
-        <div className="border-t border-gray-900 bg-black md:hidden">
+        <div className="border-t border-[var(--color-zoe-blue)]/20 bg-white md:hidden shadow-lg">
           <ul className="flex flex-col px-6 py-4 text-center">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <a 
                   href={link.href} 
-                  className="block py-3 text-sm font-medium text-gray-300 hover:text-sky-400"
+                  className="block py-3 text-sm font-medium text-[var(--color-zoe-muted)] transition-colors hover:text-[var(--color-zoe-blue)]"
                   // Cierra el menú automáticamente después de elegir una sección
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -114,10 +112,10 @@ export default function Navbar() {
                 </a>
               </li>
             ))}
-            <li className="mt-4">
+            <li className="mt-4 pb-2">
               <a 
                 href="#agendar" 
-                className="block w-full rounded-full bg-sky-500 px-5 py-3 text-sm font-bold text-black hover:bg-sky-400"
+                className="block w-full rounded-full bg-[var(--color-zoe-blue)] px-5 py-3 text-sm font-bold text-white shadow-md shadow-[var(--color-zoe-blue)]/20 transition-colors hover:bg-[#4375af]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Agendar Turno

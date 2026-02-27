@@ -1,7 +1,6 @@
 /**
  * src\components\sections\Testimonials.tsx
- * 
- * COMPONENTE: Testimonials.tsx
+ * * COMPONENTE: Testimonials.tsx
  * ARQUITECTURA: Sección de Landing Page / Prueba Social de Alto Impacto (Video)
  * * PROPÓSITO ESTRATÉGICO: 
  * Apalancar la empatía humana y la evidencia visual mediante testimonios en formato 
@@ -41,20 +40,21 @@ export default function Testimonials() {
 
   return (
     // CONTENEDOR DE SECCIÓN
-    <section id="testimonios" className="scroll-mt-24 bg-black px-6 py-24 text-white">
+    // INVERSIÓN VISUAL: Removido 'bg-black text-white' para heredar el entorno Clinical Light.
+    <section id="testimonios" className="scroll-mt-24 px-6 py-24">
       
       <div className="mx-auto max-w-7xl">
         
         {/* ENCABEZADO DE LA SECCIÓN */}
         <div className="mb-16 text-center">
-          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-sky-500 uppercase">
+          <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
             Experiencias Reales
           </span>
-          <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Lo que dicen <span className="text-gray-400">nuestros pacientes</span>
+          <h2 className="text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
+            Lo que dicen <span className="text-[var(--color-zoe-blue)]">nuestros pacientes</span>
           </h2>
-          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-sky-500"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400">
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
+          <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-[var(--color-zoe-muted)]">
             No te quedes con nuestra palabra. Escucha las historias de quienes ya han 
             transformado su piel con la tecnología Zoe Plasma.
           </p>
@@ -70,14 +70,17 @@ export default function Testimonials() {
           {videoTestimonials.map((video, index) => (
             // TARJETA CONTENEDORA DEL VIDEO
             // Manteniendo el glassmorphism y bordes sutiles para enmarcar el iframe
+            // INVERSIÓN VISUAL: Pasamos de tarjeta oscura a cristal blanco translúcido
             <div 
               key={index} 
-              className="group mx-auto flex w-full max-w-[350px] flex-col overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 shadow-2xl transition-all duration-300 hover:border-sky-500/50 hover:shadow-sky-500/10"
+              className="group mx-auto flex w-full max-w-[350px] flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/80 backdrop-blur-sm shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-zoe-blue)]/30 hover:shadow-xl hover:shadow-[var(--color-zoe-blue)]/10"
             >
               
               {/* CONTENEDOR DEL IFRAME (Proporción 9:16 estricta)
                   El padding-bottom de 177.77% fuerza al div a mantener la relación de aspecto 
-                  vertical de un teléfono, evitando bandas negras. */}
+                  vertical de un teléfono, evitando bandas negras. 
+                  NOTA ARQUITECTÓNICA: Mantenemos el 'bg-black' aquí dentro porque los reproductores 
+                  de YouTube tienen bordes oscuros; esto evita marcos blancos disonantes. */}
               <div className="relative w-full pt-[177.77%] bg-black">
                 <iframe 
                   className="absolute top-0 left-0 h-full w-full border-0"
@@ -90,11 +93,12 @@ export default function Testimonials() {
               </div>
 
               {/* ÁREA INFERIOR: Contexto del Video */}
-              <div className="border-t border-gray-800 p-5 text-center">
-                <h3 className="mb-1 text-lg font-bold text-white">
+              {/* INVERSIÓN VISUAL: Borde sutil azul y textos oscuros */}
+              <div className="border-t border-[var(--color-zoe-blue)]/10 p-5 text-center">
+                <h3 className="mb-1 text-lg font-bold text-[var(--color-zoe-dark)]">
                   {video.patientName}
                 </h3>
-                <p className="text-xs font-medium text-sky-400 uppercase tracking-wider">
+                <p className="text-xs font-bold text-[var(--color-zoe-blue)] uppercase tracking-wider">
                   {video.treatment}
                 </p>
               </div>
@@ -106,13 +110,14 @@ export default function Testimonials() {
 
         {/* BOTÓN DE AUTORIDAD EXTERNA (Call to Action Secundario) */}
         <div className="mt-16 text-center">
+          {/* INVERSIÓN VISUAL: Botón translúcido blanco que se vuelve sólido en el hover */}
           <a 
             href="https://youtube.com/@zoeplasmabeauty" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 rounded-full border border-gray-700 bg-transparent px-8 py-4 text-sm font-bold text-white transition-all hover:bg-gray-800 hover:border-gray-500"
+            className="inline-flex items-center gap-3 rounded-full border border-[var(--color-zoe-blue)]/20 bg-white/50 backdrop-blur-sm px-8 py-4 text-sm font-bold text-[var(--color-zoe-dark)] shadow-sm transition-all hover:-translate-y-1 hover:bg-white hover:border-[var(--color-zoe-blue)]/50 hover:shadow-md"
           >
-            {/* Ícono de Play */}
+            {/* Ícono de Play (Mantenemos el rojo original de YouTube para reconocimiento cognitivo rápido) */}
             <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
