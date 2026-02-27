@@ -161,7 +161,7 @@ export default function Contact() {
             <div className="relative h-64 w-full bg-gray-800">
               {/* Iframe de Google Maps */}
               <iframe 
-                src="https://maps.app.goo.gl/qDqv1uGubJ2h1hnq8" 
+                src="[https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.3689892243806!2d-58.519818023544545!3d-34.6201145729485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7efedb1ecb1%3A0xdb7f4e040ff55be4!2sMAKING BEAUTY PLASMA FIBROBLAST!5e0!3m2!1ses!2sar!4v1772217036703!5m2!1ses!2sar](https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3283.3689892243806!2d-58.519818023544545!3d-34.6201145729485!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7efedb1ecb1%3A0xdb7f4e040ff55be4!2sMAKING%20BEAUTY%20PLASMA%20FIBROBLAST!5e0!3m2!1ses!2sar!4v1772217036703!5m2!1ses!2sar)" 
                 className="absolute inset-0 h-full w-full border-0"
                 allowFullScreen={false}
                 loading="lazy"
@@ -176,15 +176,16 @@ export default function Contact() {
                 <div className="text-center text-xs font-bold tracking-widest text-gray-300 uppercase drop-shadow-md">
                   Atención Exclusiva con Cita Previa
                 </div>
-                <a 
-                  href="#agendar"
-                  className="rounded-full bg-sky-500 px-8 py-2.5 text-sm font-bold text-black shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:scale-105 hover:bg-sky-400"
-                >
-                  Agendar Turno
-                </a>
               </div>
             </div>
-
+            <div>
+              <a 
+                href="#agendar"
+                className="rounded-full bg-sky-500 px-8 py-2.5 text-sm font-bold text-black shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all hover:scale-105 hover:bg-sky-400"
+              >
+                Agendar Turno
+              </a>
+            </div>
           </div>
 
         </div>
