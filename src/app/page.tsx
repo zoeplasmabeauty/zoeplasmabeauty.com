@@ -50,25 +50,35 @@ export default function Home() {
               Sitio en Construcción
             </h3>
           </div>
-          <p className="mb-10 text-gray-400 max-w-md">
+          <p className="mb-10 max-w-md text-gray-400">
             Próximamente podrás agendar tus turnos online y descubrir el poder de la tecnología plasma.
           </p>
           
-          {/* Botones de Acción (Placeholders) */}
+          {/* Botones de Acción Activos */}
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <button className="rounded-full bg-sky-500 px-8 py-3.5 text-black font-bold hover:bg-sky-400 transition-colors duration-200">
+            <a 
+              href="https://instagram.com/zoe.plasmabeauty" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="rounded-full bg-sky-500 px-8 py-3.5 text-center font-bold text-black transition-colors duration-200 hover:bg-sky-400"
+            >
               Síguenos en Instagram
-            </button>
-            <button className="rounded-full bg-white px-8 py-3.5 text-black font-bold hover:bg-gray-200 transition-colors duration-200">
+            </a>
+            <a 
+              href="https://wa.me/5491136439152" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="rounded-full bg-white px-8 py-3.5 text-center font-bold text-black transition-colors duration-200 hover:bg-gray-200"
+            >
               Contacto WhatsApp
-            </button>
+            </a>
           </div>
         </div>
       </div>
 
       {/* Footer sutil */}
-      <footer className="absolute bottom-6 z-10 text-xs font-mono text-gray-700 tracking-wider uppercase">
-        &copy; 2024 Zoe plasma Beauty. Todos los derechos reservados.
+      <footer className="absolute bottom-6 z-10 text-xs font-mono tracking-wider text-gray-700 uppercase">
+        &copy; 2026 Zoe plasma Beauty. Todos los derechos reservados.
       </footer>
     </main>
   );
