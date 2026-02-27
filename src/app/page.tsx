@@ -57,7 +57,7 @@ export default function Home() {
           {/* Botones de Acción Activos */}
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <a 
-              href="https://instagram.com/zoe.plasmabeauty" 
+              href="https://instagram.com/making.beauty.estetica" 
               target="_blank" 
               rel="noopener noreferrer"
               className="rounded-full bg-sky-500 px-8 py-3.5 text-center font-bold text-black transition-colors duration-200 hover:bg-sky-400"
@@ -65,7 +65,7 @@ export default function Home() {
               Síguenos en Instagram
             </a>
             <a 
-              href="https://wa.me/5491136439152" 
+              href="https://wa.me/5491133850211"
               target="_blank" 
               rel="noopener noreferrer"
               className="rounded-full bg-white px-8 py-3.5 text-center font-bold text-black transition-colors duration-200 hover:bg-gray-200"
