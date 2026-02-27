@@ -44,7 +44,7 @@ export default function Footer() {
             {/* Redes Sociales en versión minimalista */}
             <div className="flex gap-4">
               <a 
-                href="https://instagram.com/TU_USUARIO" 
+                href="https://instagram.com/making.beauty.estetica" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-500 transition-colors hover:text-sky-400"

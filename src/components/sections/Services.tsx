@@ -31,28 +31,28 @@ export default function Services() {
       // Tag visual, como se ve en el ejemplo ("MÁS POPULAR").
       tag: "Más Popular", 
       // Marcador de posición de imagen (usando un color sólido azul oscuro).
-      imageUrl: "https://porcunadebenito.com/wp-content/uploads/2025/10/que-es-un-lifting-facial.jpg", // Reemplazar con imagen real del procedimiento.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg", // Reemplazar con imagen real del procedimiento.
     },
     {
       title: "Blefaroplastia No Invasiva",
       description: "Levantamiento de párpados caídos y reducción de bolsas u ojeras sin cortes ni suturas. Mirada rejuvenecida.",
       duration: "45 min",
       tag: "Alta Demanda",
-      imageUrl: "https://martinezsimon.com/wp-content/uploads/2023/03/plasmage.jpg", // Reemplazar con imagen real.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg", // Reemplazar con imagen real.
     },
     {
       title: "Eliminación de Estrías",
       description: "Tratamiento focalizado para regenerar el colágeno en estrías blancas y rojas, mejorando drásticamente la textura de la piel.",
       duration: "90 min",
       tag: null,
-      imageUrl: "https://fotomedicina.com/wp-content/uploads/2021/07/como-eliminar-estrias-blancas-500x350.jpg", // Reemplazar con imagen real.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg", // Reemplazar con imagen real.
     },
     {
       title: "Remoción de Verrugas y Manchas",
       description: "Sublimación precisa de lesiones benignas de la piel, verrugas, léntigos solares y acrocordones en una sola sesión.",
       duration: "30 min",
       tag: "Rápido",
-      imageUrl: "https://draluisaguerra.com/wp-content/uploads/2021/04/Cauterizacion-de-Verrugas.jpg", // Reemplazar con imagen real.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg", // Reemplazar con imagen real.
     },
   ];
 

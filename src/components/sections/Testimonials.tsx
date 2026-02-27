@@ -25,17 +25,17 @@ export default function Testimonials() {
       patientName: "María F.",
       treatment: "Blefaroplastia",
       // Marcador de posición. Reemplaza "TU_ID_AQUI_1" por el ID real de tu Short (ej. "aBcDeFgHiJ")
-      youtubeEmbedUrl: "https://www.youtube.com/embed/TU_ID_AQUI_1?rel=0&modestbranding=1",
+      youtubeEmbedUrl: "https://www.youtube.com/embed/y4IZ7EdjUWg?rel=0&modestbranding=1",
     },
     {
       patientName: "Laura G.",
       treatment: "Lifting Facial",
-      youtubeEmbedUrl: "https://www.youtube.com/embed/TU_ID_AQUI_2?rel=0&modestbranding=1",
+      youtubeEmbedUrl: "https://www.youtube.com/embed/SsMGhDh_ykk?rel=0&modestbranding=1",
     },
     {
       patientName: "Sofía M.",
       treatment: "Remoción de Manchas",
-      youtubeEmbedUrl: "https://www.youtube.com/embed/TU_ID_AQUI_3?rel=0&modestbranding=1",
+      youtubeEmbedUrl: "https://www.youtube.com/embed/gat4apmaEmM?rel=0&modestbranding=1",
     }
   ];
 

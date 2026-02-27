@@ -27,26 +27,26 @@ export default function Gallery() {
       treatment: "Blefaroplastia No Invasiva",
       description: "Reducción severa de exceso de piel en párpado superior. 1 sesión.",
       // Marcadores de posición simulando imágenes antes/después
-      beforeImage: "https://www.bogotalaser.com/wp-content/uploads/2022/05/enfermedades-de-los-parpados_1-mod.webp",
-      afterImage: "https://beoneface.com/wp-content/uploads/2023/03/La-mejor-solucion-para-los-parpados-caidos-en-clinica-beOne-en-Madrid.jpg",
+      beforeImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772214888/Antes_psqfk2.jpg",
+      afterImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772214888/Despues_epa3zd.jpg",
     },
     {
       treatment: "Lifting Facial (Fibroblast)",
       description: "Retracción de tejido en zona peribucal (código de barras). 2 sesiones.",
-      beforeImage: "https://www.materialestetica.com/blog/wp-content/uploads/2023/09/Blog-ME.jpg",
-      afterImage: "https://catalinajaramillo.com/cdn/shop/files/Lifting_de_pestanas_Catalina_Jaramillo_5.png?v=1730397186&width=2048",
+      beforeImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215000/Lifting-antes_heebq6.jpg",
+      afterImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215001/Lifting-despues_pzupz5.jpg",
     },
     {
       treatment: "Remoción de Léntigos Solares",
       description: "Eliminación de manchas solares en pómulos. Resultados a los 15 días.",
-      beforeImage: "https://dbdermatologiabarcelona.com/wp-content/uploads/2013/01/LENTIGOS-SOLARES.png",
-      afterImage: "https://www.bupasalud.com/sites/default/files/styles/640_x_400/public/articulos/2025-11/fotos/manchas-marrones-espalda-1.jpg?itok=mRMUvC7O",
+      beforeImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215099/Lentigos-antes_wtiubm.jpg",
+      afterImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215098/Lentigo-despues_r9oioq.jpg",
     },
     {
       treatment: "Tratamiento de Estrías",
       description: "Regeneración de colágeno en estrías abdominales post-parto. 3 sesiones.",
-      beforeImage: "https://imagenes2.eltiempo.com/files/og_thumbnail/uploads/2023/03/16/6413817c125b8.jpeg",
-      afterImage: "https://d30gl8nkrjm6kp.cloudfront.net/articulos/articulos-407652.jpg",
+      beforeImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215208/Estrias-antes_zifuop.jpg",
+      afterImage: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772215209/Estrias-despues_pk1pbu.jpg",
     }
   ];
 
