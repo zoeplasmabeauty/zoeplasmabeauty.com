@@ -2,8 +2,7 @@ import Image from "next/image";
 
 /**
  * src\components\sections\Gallery.tsx
- * 
- * COMPONENTE: Gallery.tsx
+ * * COMPONENTE: Gallery.tsx
  * ARQUITECTURA: Sección de Landing Page / Prueba Social Visual (Antes y Después)
  * * PROPÓSITO ESTRATÉGICO: 
  * Derribar el escepticismo del usuario. En la industria estética, la evidencia empírica 
@@ -92,11 +91,14 @@ export default function Gallery() {
               <div className="grid grid-cols-2 divide-x divide-gray-800">
                 
                 {/* CAJA IMAGEN 1: ANTES */}
-                <div className="relative overflow-hidden">
+                {/* Corrección Arquitectónica: Dimensiones ('h-64 w-full sm:h-80') trasladadas al div padre */}
+                <div className="relative h-64 w-full overflow-hidden sm:h-80">
                   <Image 
                     src={item.beforeImage} 
-                    alt={`Antes del tratamiento: ${item.treatment}`} 
-                    className="h-64 w-full object-cover sm:h-80 transition-transform duration-500 group-hover:scale-105"
+                    alt={`Antes del tratamiento: ${item.treatment}`}
+                    fill
+                    // Las dimensiones ya no van aquí, solo el comportamiento de la imagen
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* ETIQUETA ABSOLUTA: Anclada arriba a la izquierda */}
                   <div className="absolute top-4 left-4 rounded bg-black/80 px-3 py-1 text-xs font-bold tracking-widest text-gray-400 uppercase backdrop-blur-sm">
@@ -105,11 +107,14 @@ export default function Gallery() {
                 </div>
 
                 {/* CAJA IMAGEN 2: DESPUÉS */}
-                <div className="relative overflow-hidden">
+                {/* Corrección Arquitectónica: Dimensiones ('h-64 w-full sm:h-80') trasladadas al div padre */}
+                <div className="relative h-64 w-full overflow-hidden sm:h-80">
                   <Image 
                     src={item.afterImage} 
                     alt={`Después del tratamiento: ${item.treatment}`} 
-                    className="h-64 w-full object-cover sm:h-80 transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    // Las dimensiones ya no van aquí, solo el comportamiento de la imagen
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* ETIQUETA ABSOLUTA: Anclada arriba a la derecha, color destacado */}
                   <div className="absolute top-4 right-4 rounded bg-sky-500/90 px-3 py-1 text-xs font-bold tracking-widest text-black uppercase backdrop-blur-sm">
