@@ -1,0 +1,16 @@
+# ARCHIVO: wrangler.toml
+# ARQUITECTURA: Configuración de Infraestructura (Cloudflare Pages)
+
+name = "zoeplasmabeauty"
+compatibility_date = "2024-02-27"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# ENLACE DE BASE DE DATOS (Binding)
+# Le decimos a Cloudflare que cuando el código llame a la variable "DB",
+# debe conectarse a esta base de datos específica.
+[[d1_databases]]
+binding = "DB" # Simplificamos el nombre a "DB" para facilitar su uso en el código
+database_name = "zoe-plasma-db"
+database_id = "2222ba6c-1921-4fc8-812f-282918e130e4"
+migrations_dir = "drizzle"
