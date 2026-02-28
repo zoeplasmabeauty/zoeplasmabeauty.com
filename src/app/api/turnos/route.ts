@@ -1,8 +1,8 @@
 /**
  * ARCHIVO: src/app/api/turnos/route.ts
  * * ARQUITECTURA: Controlador Backend (Edge API Route)
- 
-* * PROPÓSITO:
+ *
+ * * PROPÓSITO:
  * Recibir las peticiones POST desde el formulario del frontend (Fase 2), 
  * validar la información y orquestar la escritura segura en la base de datos D1.
  * * RESPONSABILIDADES:
@@ -19,6 +19,7 @@ import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../db'; 
 import { patients, appointments } from '../../../db/schema';
+import { getBookingConfirmationEmail } from '../../../lib/emailTemplates';
 
 // DIRECTIVA CRÍTICA: Fuerza la compilación para el Edge Runtime de Cloudflare.
 // Esto permite que el código corra en los nodos globales de Cloudflare, no en un servidor central.
@@ -108,8 +109,73 @@ export async function POST(request: Request) {
       status: "pending",
     }).returning({ id: appointments.id });
 
-    // RESPUESTA EXITOSA:
-    // Retornamos el appointmentId para que el frontend pueda mostrar una confirmación.
+    // ============================================================================
+    // NUEVA FASE: AUTOMATIZACIÓN DE CORREO TRANSACCIONAL (BREVO API)
+    // ============================================================================
+    // Aislamiento Acústico (Try/Catch interno): Si el envío del correo falla 
+    // (ej. Brevo se cae), NO queremos que el paciente vea un error en rojo, 
+    // porque su turno SÍ se guardó en nuestra base de datos con éxito.
+    try {
+      // 1. EXTRACCIÓN DE LA LLAVE (API KEY)
+      // Buscamos la variable en Cloudflare o en local. Forzamos el tipo Record para
+      // evitar que el Linter estricto de Next.js se queje por variables no declaradas.
+      const cloudflareEnv = env as unknown as Record<string, unknown>;
+      const brevoApiKey = (cloudflareEnv.BREVO_API_KEY as string) || process.env.BREVO_API_KEY;
+
+      if (brevoApiKey) {
+        // 2. MASTERIZACIÓN DE FECHA (Timezone local)
+        // Convertimos el estándar ISO a texto legible, asegurando que respete
+        // el huso horario oficial independientemente de dónde esté alojado el servidor.
+        const fechaObjeto = new Date(appointmentDate);
+        const fechaFormateada = new Intl.DateTimeFormat('es-AR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Argentina/Buenos_Aires'
+        }).format(fechaObjeto);
+
+        // 3. DISEÑO DEL CORREO (PLANTILLA HTML IMPORTADA)
+        // llamamos a la librería → src/lib/emailTemplates.ts
+        // Si queremos cambiar colores o textos en el futuro, solo modificamos el archivo emailTemplates.ts
+        const emailHtml = getBookingConfirmationEmail({
+          fullName,
+          serviceId,
+          fechaFormateada,
+          phone
+        });
+
+        // 4. DISPARO DE LA SEÑAL (PETICIÓN POST A BREVO)
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'api-key': brevoApiKey
+          },
+          body: JSON.stringify({
+            sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
+            to: [{ email: email, name: fullName }],
+            subject: "Evaluación Recibida - Zoe Plasma Beauty",
+            htmlContent: emailHtml
+          })
+        });
+        
+        console.log("📨 Correo enviado exitosamente vía Brevo a:", email);
+      } else {
+        console.warn("⚠️ Advertencia: BREVO_API_KEY no encontrada. Correo no enviado.");
+      }
+    } catch (emailError) {
+      // Prevención de tipado estricto: Evitamos usar "any" verificando la instancia del error
+      const msg = emailError instanceof Error ? emailError.message : 'Error desconocido';
+      console.error("🔴 Fallo en servicio auxiliar (Brevo):", msg);
+    }
+    // ============================================================================
+
+    // RESPUESTA EXITOSA FINAL AL FRONTEND:
+    // Retornamos el appointmentId para que el frontend pueda mostrar la confirmación visual.
     return new Response(
       JSON.stringify({ 
         success: true, 
@@ -120,10 +186,9 @@ export async function POST(request: Request) {
     );
 
   } catch (error) {
-    // MANEJO DE CRISIS Y LOGS:
-    // Capturamos cualquier fallo (Error de red, violación de restricción en DB, etc.)
-    // para evitar que el proceso de Cloudflare colapse (Worker Restart).
-    console.error("🔥 Error crítico en API Turnos:", error);
+    // MANEJO DE CRISIS Y LOGS DE LA BASE DE DATOS:
+    const msg = error instanceof Error ? error.message : 'Error interno desconocido';
+    console.error("🔥 Error crítico en API Turnos:", msg);
     
     return new Response(
       JSON.stringify({ error: "Error interno del servidor." }), 
