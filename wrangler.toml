@@ -1,12 +1,8 @@
 # ARCHIVO: wrangler.toml
 # ARQUITECTURA: Configuración de Infraestructura (Cloudflare Pages)
 
-compatibility_date = "2026-02-24"
-compatibility_flags = ["nodejs_compat"]
-
-# ... (deja el resto de tu archivo intacto abajo)
 name = "zoeplasmabeauty"
-compatibility_date = "2024-02-27"
+compatibility_date = "2026-02-24"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
