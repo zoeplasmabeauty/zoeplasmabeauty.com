@@ -1,5 +1,6 @@
 /**
  * ARCHIVO: src/app/api/turnos/route.ts
+ * 
  * ARQUITECTURA: Controlador Backend (Edge API Route)
  * * PROPÓSITO ESTRATÉGICO:
  * Recibir las peticiones POST desde el formulario del frontend (Fase 2), 
