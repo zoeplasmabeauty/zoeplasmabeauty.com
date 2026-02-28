@@ -2,7 +2,9 @@
 // ^ DIRECTIVA CRÍTICA: Añadida porque ahora usaremos interactividad (Intersection Observer y Estado)
 
 /**
+ * src\components\sections\About.tsx
  * COMPONENTE: About.tsx
+ * 
  * ARQUITECTURA: Sección de Landing Page / Construcción de Autoridad con Micro-interacción
  * * PROPÓSITO ESTRATÉGICO: 
  * Educar al usuario sobre la tecnología y anclar la confianza mediante prueba social dinámica.
