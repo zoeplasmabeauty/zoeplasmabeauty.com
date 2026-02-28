@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/dist/style.css";
 
 /* * ARQUITECTURA DE COLOR: "Clinical Light"
  * Inyectamos las variables de tu marca directamente en el motor de Tailwind v4.

@@ -1,10 +1,21 @@
-# ARCHIVO: wrangler.toml
-# ARQUITECTURA: Configuración de Infraestructura (Cloudflare Pages)
+# * ARCHIVO: wrangler.toml
+# * ARQUITECTURA: Configuración de Infraestructura (Cloudflare Pages)
+# * * PROPÓSITO ESTRATÉGICO:
+# * Definir el entorno de ejecución, las variables de compatibilidad y los enlaces 
+# * a recursos externos (D1) para que el proyecto funcione en la infraestructura de Cloudflare.
+# * * RESPONSABILIDADES:
+# * 1. Identificación: Nombrar el proyecto dentro de la cuenta de Cloudflare.
+# * 2. Motor de Ejecución: Establecer la fecha de compatibilidad y banderas de Node.js.
+# * 3. Orquestación de Base de Datos: Vincular la base de datos D1 "zoe-plasma-db" al código.
+# * 4. Rutas de Salida: Definir dónde se encuentran los archivos estáticos generados.
 
 name = "zoeplasmabeauty"
 compatibility_date = "2026-02-24"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+
+# NOTA TÉCNICA: Esta carpeta es generada por el comando 'next-on-pages' durante el build.
+# En desarrollo local, si esta carpeta está vacía, Wrangler puede devolver un error 404.
+# pages_build_output_dir = ".vercel/output/static"
 
 # ENLACE DE BASE DE DATOS (Binding)
 # Le decimos a Cloudflare que cuando el código llame a la variable "DB",

@@ -1,10 +1,15 @@
 /**
  * ARCHIVO: src/app/api/turnos/route.ts
- * 
- * ARQUITECTURA: Controlador Backend (Edge API Route)
- * * PROPÓSITO ESTRATÉGICO:
+ * * ARQUITECTURA: Controlador Backend (Edge API Route)
+ 
+* * PROPÓSITO:
  * Recibir las peticiones POST desde el formulario del frontend (Fase 2), 
  * validar la información y orquestar la escritura segura en la base de datos D1.
+ * * RESPONSABILIDADES:
+ * 1. Deserialización: Extraer y tipar el cuerpo de la petición (JSON).
+ * 2. Validación: Asegurar que campos críticos como DNI, Teléfono y Email estén presentes.
+ * 3. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
+ * 4. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
  * * SEGURIDAD:
  * Utiliza el Edge Runtime de Cloudflare para ejecución cercana al usuario y 
  * validación estricta de tipos para evitar inyecciones o datos corruptos.
@@ -26,6 +31,7 @@ interface BookingRequestBody {
   fullName: string;
   phone: string;
   dni: string;
+  email: string; // INYECCIÓN: Nuevo campo obligatorio en el contrato de datos.
   serviceId: string;
   appointmentDate: string;
 }
@@ -62,30 +68,34 @@ export async function POST(request: Request) {
     const clonedRequest = request.clone();
     const body = (await clonedRequest.json()) as BookingRequestBody;
     
-    const { fullName, phone, dni, serviceId, appointmentDate } = body;
+    // EXTRACCIÓN: Incluimos 'email' en la desestructuración del cuerpo.
+    const { fullName, phone, dni, email, serviceId, appointmentDate } = body;
 
     // GENERACIÓN MANUAL DE IDs (Evita crashes por funciones SQL inexistentes localmente)
     const patientUUID = crypto.randomUUID();
     const appointmentUUID = crypto.randomUUID();
 
-    // VALIDACIÓN DE INTEGRIDAD
-    if (!fullName || !phone || !dni || !serviceId || !appointmentDate) {
+    // VALIDACIÓN DE INTEGRIDAD: Se añade 'email' a la comprobación de campos obligatorios.
+    if (!fullName || !phone || !dni || !email || !serviceId || !appointmentDate) {
       return NextResponse.json(
         { error: "Faltan datos obligatorios para agendar el turno." }, 
         { status: 400 }
       );
     }
 
-    // REGISTRO DE PACIENTE CON UPSERT SEGURO
+    // REGISTRO DE PACIENTE CON UPSERT SEGURO:
+    // El 'email' se guarda en la tabla 'patients'. Si el DNI ya existe, se actualizan 
+    // el nombre, el teléfono y el correo electrónico.
     const [newPatient] = await db.insert(patients).values({
       id: patientUUID, 
       dni,
       fullName,
       phone,
+      email, // MAPEO: El dato llega a la columna correspondiente.
     })
     .onConflictDoUpdate({
       target: patients.dni,
-      set: { fullName, phone }
+      set: { fullName, phone, email } // ACTUALIZACIÓN: Mantenemos los datos frescos.
     })
     .returning({ id: patients.id });
 

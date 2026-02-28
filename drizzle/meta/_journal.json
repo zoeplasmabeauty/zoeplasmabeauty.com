@@ -15,6 +15,13 @@
       "when": 1772237989540,
       "tag": "0001_rapid_scream",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772287524513,
+      "tag": "0002_big_bruce_banner",
+      "breakpoints": true
     }
   ]
 }

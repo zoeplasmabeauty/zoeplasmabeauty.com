@@ -3,9 +3,14 @@
  * ARQUITECTURA: ORM (Object-Relational Mapping) / Esquema de Base de Datos
  * MOTOR: Drizzle ORM sobre Cloudflare D1 (SQLite)
  * * * PROPÓSITO ESTRATÉGICO:
- * Traducir la lógica de negocio (Pacientes, Tratamientos, Turnos) a tablas relacionales
- * estrictamente tipadas. Si intentamos guardar un dato inválido, el sistema fallará 
- * en la compilación antes de llegar a producción, blindando la integridad de los datos.
+ * Definir la estructura de datos fidedigna de la aplicación. Actúa como la "Única Fuente de Verdad" 
+ * (Single Source of Truth), asegurando que las tablas de la base de datos reflejen con precisión 
+ * las entidades de negocio.
+ * * * RESPONSABILIDADES:
+ * 1. Modelado de Entidades: Definir tablas (Pacientes, Servicios, Turnos) y sus tipos de datos.
+ * 2. Integridad Referencial: Establecer relaciones (Foreign Keys) y reglas de borrado.
+ * 3. Validación de Capa de Datos: Impedir mediante restricciones (notNull, unique) que 
+ * entren datos corruptos o incompletos al sistema.
  */
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
@@ -17,10 +22,18 @@ import { sql } from "drizzle-orm";
 // -----------------------------------------------------------------------------
 export const patients = sqliteTable("patients", {
   id: text("id").primaryKey(),
+  
+  // DNI como identificador único humano para evitar duplicidad de fichas clínicas.
   dni: text("dni").notNull().unique(), // <- NUEVA COLUMNA CRÍTICA Y ÚNICA
+  
   fullName: text("full_name").notNull(),
+  
   phone: text("phone").notNull(),
-  email: text("email"), 
+  
+  // INYECCIÓN DE INTEGRIDAD: Se define como .notNull() para obligar al registro 
+  // de una vía de comunicación digital para el envío de instrucciones post-turno.
+  email: text("email").notNull(), 
+  
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`), 
@@ -33,9 +46,13 @@ export const patients = sqliteTable("patients", {
 // -----------------------------------------------------------------------------
 export const services = sqliteTable("services", {
   id: text("id").primaryKey(),
+  
   name: text("name").notNull(), // Ej: "Blefaroplastia No Invasiva"
+  
   durationMinutes: integer("duration_minutes").notNull(), // Ej: 45
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true), // Para pausar servicios temporalmente
+  
+  // Permite desactivar servicios sin borrarlos, manteniendo la integridad de turnos históricos.
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true), 
 });
 
 // -----------------------------------------------------------------------------
@@ -50,6 +67,7 @@ export const appointments = sqliteTable("appointments", {
   patientId: text("patient_id")
     .notNull()
     .references(() => patients.id, { onDelete: "cascade" }), // Si se borra el paciente, se borran sus turnos
+    
   serviceId: text("service_id")
     .notNull()
     .references(() => services.id, { onDelete: "restrict" }), // No permite borrar un servicio si tiene turnos asignados
@@ -57,12 +75,12 @@ export const appointments = sqliteTable("appointments", {
   // Fecha y Hora del turno en formato ISO 8601 de texto (Estándar seguro para SQLite)
   appointmentDate: text("appointment_date").notNull(), 
   
-  // Estado del embudo del turno (Control de flujo)
+  // Estado del embudo del turno (Control de flujo operativo)
   status: text("status", { enum: ["pending", "confirmed", "completed", "cancelled"] })
     .notNull()
     .default("pending"),
   
-  // Notas internas clínicas o mensajes dejados por el paciente
+  // Notas internas clínicas o mensajes dejados por el paciente durante la reserva
   notes: text("notes"),
   
   createdAt: integer("created_at", { mode: "timestamp" })
