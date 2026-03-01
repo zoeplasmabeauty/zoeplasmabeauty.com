@@ -11,7 +11,7 @@
  * de "Call to Action" (Llamado a la acción) de la página.
  * 2. Reducción de Fricción: Ofrece un paso a paso claro de cómo funciona la reserva actual,
  * eliminando la ansiedad del cliente.
- * 3. Diseño Modular: La caja derecha aloja el componente de cliente <BookingForm />, 
+ * 3. Diseño Modular: La caja inferior aloja el componente de cliente <BookingForm />, 
  * aislando la lógica compleja de estado de la estructura visual de la página.
  */
 
@@ -37,31 +37,37 @@ export default function BookingPlaceholder() {
             Agrupa la información y el botón en un bloque visualmente sólido y destacado. */}
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/90 shadow-xl backdrop-blur-md transition-shadow hover:shadow-[var(--color-zoe-blue)]/10">
           
-          {/* GRILLA INTERNA: Divide la tarjeta en dos mitades en pantallas grandes (lg:grid-cols-2) */}
-          <div className="grid lg:grid-cols-2">
+          {/* ====================================================================
+              REESTRUCTURACIÓN UI: De Diseño Dividido a Diseño Apilado (Stack).
+              ==================================================================== */}
+          <div className="flex flex-col">
             
-            {/* MITAD IZQUIERDA: Información y Propuesta de Valor */}
+            {/* SECCIÓN SUPERIOR: Información y Propuesta de Valor */}
             <div className="flex flex-col justify-center p-10 md:p-16">
-              <span className="mb-4 font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
-                Da el primer paso
-              </span>
-              <h2 className="mb-6 text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
-                Reserva tu <span className="text-[var(--color-zoe-blue)]">Evaluación</span>
-              </h2>
-              <p className="mb-10 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-                Cada rostro y cuerpo es único. En esta etapa inicial, gestionamos nuestras citas de forma personalizada para garantizar que el tratamiento de plasma elegido sea el adecuado para tus objetivos.
-              </p>
+              
+              <div className="max-w-3xl"> {/* Limitamos el ancho del texto para no crear líneas infinitas y cansadas de leer */}
+                <span className="mb-4 font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
+                  Da el primer paso
+                </span>
+                <h2 className="mb-6 text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
+                  Reserva tu <span className="text-[var(--color-zoe-blue)]">Evaluación</span>
+                </h2>
+                <p className="mb-10 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
+                  Cada rostro y cuerpo es único. En esta etapa inicial, gestionamos nuestras citas de forma personalizada para garantizar que el tratamiento de plasma elegido sea el adecuado para tus objetivos.
+                </p>
+              </div>
 
               {/* LISTA DE PASOS (Cómo funciona la reserva actualmente) */}
-              <ul className="space-y-6">
+              {/* Alineamos los pasos en una grilla de 3 columnas en pantallas grandes para usar mejor el espacio horizontal */}
+              <ul className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 mt-4">
                 <li className="flex items-start gap-4">
                   {/* Círculo con número */}
                   <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-zoe-blue)]/10 text-sm font-bold text-[var(--color-zoe-blue)]">
                     1
                   </div>
                   <div>
-                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Elige tu tratamiento</h4>
-                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Selecciona el servicio y la fecha en nuestro sistema integrado.</p>
+                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Ingresa tus datos</h4>
+                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Proporciona tu información básica para crear tu ficha clínica.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
@@ -69,8 +75,8 @@ export default function BookingPlaceholder() {
                     2
                   </div>
                   <div>
-                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Ingresa tus datos</h4>
-                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Proporciona tu información básica para crear tu ficha clínica (DNI).</p>
+                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Elige tu tratamiento</h4>
+                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Selecciona el servicio, la fecha y la hora en nuestro sistema integrado.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
@@ -79,14 +85,14 @@ export default function BookingPlaceholder() {
                   </div>
                   <div>
                     <h4 className="font-bold text-[var(--color-zoe-dark)]">Confirmación</h4>
-                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Registraremos tu turno en la base de datos y un especialista te contactará.</p>
+                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Abona la seña segura y registraremos tu turno automáticamente.</p>
                   </div>
                 </li>
               </ul>
             </div>
 
-            {/* MITAD DERECHA: El Motor de Reservas (BookingForm) */}
-            <div className="flex items-center justify-center border-t border-gray-100 bg-[var(--color-zoe-mint)]/20 p-6 lg:border-t-0 lg:border-l lg:p-8">
+            {/* SECCIÓN INFERIOR: El Motor de Reservas (BookingForm) */}
+            <div className="flex items-center justify-center border-t border-gray-100 bg-[var(--color-zoe-mint)]/20 p-6 md:p-10 lg:p-16">
               
               <div className="w-full">
                 {/* 2. INYECCIÓN DEL COMPONENTE REACT */}

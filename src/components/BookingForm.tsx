@@ -8,6 +8,7 @@
  * 3. Comunicación con la API de turnos y la API de Disponibilidad.
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
  * 5. Redirección automática a pasarela de cobro (Mercado Pago).
+ * 6. Desglose de costos (Reserva + Impuestos MP).
  */
 
 'use client'; // Directiva estricta: Este código corre en el navegador del paciente.
@@ -48,6 +49,17 @@ export default function BookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // ============================================================================
+  // CONSTANTES FINANCIERAS (El Motor de Precios)
+  // Definimos las variables de cobro como constantes fijas para evitar cálculos erróneos
+  // y asegurar la consistencia entre lo que ve el paciente y lo que se cobra en Mercado Pago.
+  // ============================================================================
+  const COSTO_RESERVA_BASE = 50000;
+  const PORCENTAJE_IMPUESTOS_MP = 0.0825; // 8.25% (Comisión + IVA + IIBB)
+  const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
+  const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
+
 
   // 4. EXTRACCIÓN AL INICIAR (ON MOUNT)
   // Llama a tu ruta GET para poblar el select dinámicamente.
@@ -379,18 +391,45 @@ export default function BookingForm() {
           </div>
         </div>
 
-        {/* BOTÓN DE ACCIÓN: Ocupa toda la base de la grilla */}
+        {/* BOTÓN DE ACCIÓN Y DESGLOSE FINANCIERO: Ocupa toda la base de la grilla */}
         <div className="lg:col-span-2 pt-6">
+          
+          {/* INYECCIÓN: Caja de Desglose de Costos (Solo se muestra si hay una hora seleccionada) */}
+          {selectedTime && (
+            <div className="mb-6 p-5 bg-stone-50 border border-stone-200 rounded-2xl max-w-xl mx-auto">
+              <h4 className="text-sm font-bold text-stone-800 uppercase tracking-wider mb-4 border-b border-stone-200 pb-2">
+                Resumen de Reserva
+              </h4>
+              
+              <div className="flex justify-between items-center mb-2 text-stone-600">
+                <span className="text-sm">Costo de seña</span>
+                <span className="font-medium">${COSTO_RESERVA_BASE.toLocaleString('es-AR')}</span>
+              </div>
+              
+              <div className="flex justify-between items-center mb-4 text-stone-500 text-sm">
+                <span>Cargos por Servicio</span>
+                <span>${CARGOS_SERVICIO.toLocaleString('es-AR')}</span>
+              </div>
+              
+              <div className="flex justify-between items-center pt-3 border-t border-stone-300">
+                <span className="font-bold text-stone-800">Total a Pagar</span>
+                <span className="font-black text-xl text-[var(--color-zoe-blue)]">
+                  ${TOTAL_A_PAGAR.toLocaleString('es-AR')}
+                </span>
+              </div>
+            </div>
+          )}
+
           <button 
             type="submit" 
             disabled={isSubmitting || !selectedTime} // Desactivado si falta la hora
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-lg text-white transition-all shadow-md
+            className={`w-full max-w-xl mx-auto block py-4 px-6 rounded-2xl font-bold text-lg text-white transition-all shadow-md
               ${(isSubmitting || !selectedTime)
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98] shadow-stone-200'
               }`}
           >
-            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Abonar Seña de $50000 y Agendar'}
+            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Confirmar y Pagar'}
           </button>
         </div>
 

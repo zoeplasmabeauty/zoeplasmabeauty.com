@@ -10,7 +10,7 @@
  * 1. Deserialización: Extraer y tipar el cuerpo de la petición (JSON).
  * 2. Validación: Asegurar que campos críticos como DNI, Teléfono y Email estén presentes.
  * 3. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
- * 4. Pasarela de Pagos: Generar el enlace de pago dinámico de Mercado Pago.
+ * 4. Pasarela de Pagos: Generar el enlace de pago dinámico de Mercado Pago (Incluyendo recargos e impuestos).
  * 5. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
  * * * SEGURIDAD:
  * Utiliza el Edge Runtime de Cloudflare para ejecución cercana al usuario y 
@@ -131,6 +131,16 @@ export async function POST(request: Request) {
       const [servicioDB] = await db.select().from(services).where(eq(services.id, serviceId));
       const nombreServicio = servicioDB ? servicioDB.name : "Tratamiento Estético";
 
+      // ============================================================================
+      // MOTOR FINANCIERO (Mastering de Precios)
+      // Estas constantes reflejan exactamente las del Frontend para evitar discrepancias.
+      // Calcula la Seña Base + el 8.25% de costos de procesamiento de Mercado Pago.
+      // ============================================================================
+      const COSTO_RESERVA_BASE = 50000;
+      const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
+      const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
+      const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
+
       // DEFINICIÓN ESTRICTA DE ENTORNO:
       // Evitamos leer los headers locales de Cloudflare que causan strings rotos.
       // Si estamos en producción usamos el dominio real, de lo contrario forzamos localhost estricto.
@@ -148,11 +158,13 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           items: [
             {
-              title: `Reserva: ${nombreServicio}`,
+              // Modificamos el título para ser claros con el paciente de que el cargo de servicio está incluido
+              title: `Reserva: ${nombreServicio} (Incluye cargos por servicio)`,
               description: `Turno de evaluación estética para ${fullName}`,
               quantity: 1,
               currency_id: "ARS",
-              unit_price: 50000 // SEÑA FIJA DE RESERVA. 
+              // INYECCIÓN: Enviamos la variable TOTAL_A_PAGAR en lugar del monto fijo
+              unit_price: TOTAL_A_PAGAR 
             }
           ],
           payer: {
