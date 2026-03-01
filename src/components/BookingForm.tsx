@@ -5,8 +5,9 @@
  * RESPONSABILIDADES:
  * 1. Recolección de datos (Nombre, DNI, WhatsApp, Email).
  * 2. Validación de reglas de negocio (Bloqueo de domingos y fechas pasadas, validación de inputs).
- * 3. Comunicación con la API de turnos.
+ * 3. Comunicación con la API de turnos y la API de Disponibilidad.
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
+ * 5. Redirección automática a pasarela de cobro (Mercado Pago).
  */
 
 'use client'; // Directiva estricta: Este código corre en el navegador del paciente.
@@ -28,9 +29,14 @@ export default function BookingForm() {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   
+  // Estados para manejar la cuadrícula de horarios dinámicos
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  
   // 2. ESTADOS DEL FORMULARIO (DATA STATE)
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState(''); // Guarda la hora clickeada por el usuario
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -62,13 +68,51 @@ export default function BookingForm() {
     fetchServices();
   }, []);
 
+  // ============================================================================
+  // 4.5. RADAR DE DISPONIBILIDAD (ESCUCHA DE CALENDARIO Y SERVICIO)
+  // Se dispara automáticamente cada vez que el usuario cambia el día o el tratamiento.
+  // ============================================================================
+  useEffect(() => {
+    async function fetchAvailableSlots() {
+      // Solo lanzamos el radar si tenemos ambos datos (Día y Tratamiento)
+      if (!selectedDate || !selectedServiceId) {
+        setAvailableSlots([]);
+        setSelectedTime(''); // Reseteamos la hora si cambia el día
+        return;
+      }
+
+      setIsLoadingSlots(true);
+      setSelectedTime(''); // Limpiamos selección previa por seguridad
+      
+      try {
+        // Formateamos la fecha para que la API la entienda (YYYY-MM-DD)
+        const dateStr = format(selectedDate, 'yyyy-MM-dd');
+        const res = await fetch(`/api/turnos/disponibilidad?date=${dateStr}&serviceId=${selectedServiceId}`);
+        
+        if (!res.ok) throw new Error('Fallo al cargar disponibilidad');
+        
+        // TypeScript estricto para la respuesta de nuestra nueva API
+        const data = (await res.json()) as { availableSlots: string[] };
+        setAvailableSlots(data.availableSlots || []);
+      } catch (error) {
+        console.error("Error consultando horarios:", error);
+        setAvailableSlots([]);
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    }
+
+    fetchAvailableSlots();
+  }, [selectedDate, selectedServiceId]); 
+  // Las dependencias indican que este efecto corre si cambia selectedDate o selectedServiceId
+
   // 5. MANEJADOR DE ENVÍO (SUBMIT HANDLER)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Evita que la página se recargue
 
-    // Validación radical: No disparamos a la red si faltan datos
-    if (!selectedDate || !selectedServiceId) {
-      setErrorMessage('Por favor, selecciona un tratamiento y una fecha.');
+    // Validación radical: exige también la hora (selectedTime)
+    if (!selectedDate || !selectedServiceId || !selectedTime) {
+      setErrorMessage('Por favor, selecciona un tratamiento, una fecha y un horario.');
       return;
     }
 
@@ -90,8 +134,18 @@ export default function BookingForm() {
     setErrorMessage('');
 
     try {
-      // Transformamos la fecha a formato ISO estandarizado (UTC)
-      const appointmentDate = selectedDate.toISOString();
+      // ----------------------------------------------------------------------
+      // MATEMÁTICA DE TIEMPO ABSOLUTA (Mastering de Zona Horaria)
+      // Juntamos el día (YYYY-MM-DD) con la hora (HH:mm) y le pegamos el 
+      // identificador de huso horario de Buenos Aires (-03:00) para forzar 
+      // que el servidor guarde el momento exacto sin importar en qué país 
+      // esté corriendo el Edge de Cloudflare.
+      // ----------------------------------------------------------------------
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const localDateTimeStr = `${dateStr}T${selectedTime}:00.000-03:00`;
+      
+      // Convertimos ese string estricto a ISO estándar universal (UTC) para la BD
+      const appointmentDate = new Date(localDateTimeStr).toISOString();
 
       const payload = {
         fullName: formData.fullName,
@@ -108,27 +162,44 @@ export default function BookingForm() {
         body: JSON.stringify(payload)
       });
 
-      const result = (await res.json()) as { error?: string };
+      // Agregamos checkoutUrl a la interfaz esperada
+      const result = (await res.json()) as { error?: string, checkoutUrl?: string };
 
       if (!res.ok) {
         throw new Error(result.error || 'Error desconocido en el servidor');
       }
 
+      // ========================================================================
+      // REDIRECCIÓN AUTOMÁTICA A LA BÓVEDA DE MERCADO PAGO
+      // ========================================================================
+      if (result.checkoutUrl) {
+        // Saltamos directamente al cobro
+        window.location.href = result.checkoutUrl;
+        
+        // Dejamos la función aquí. El navegador ya está cargando la nueva URL.
+        // No cambiamos setIsSubmitting a false para que el botón siga diciendo "Confirmando..." 
+        // y el paciente no haga doble clic.
+        return; 
+      }
+
+      // FALLBACK DE SEGURIDAD: Si por alguna razón Mercado Pago no devolvió URL, 
+      // actuamos como antes y mostramos el éxito manual.
       setSubmitStatus('success');
       // Limpiamos el formulario tras un éxito rotundo
       setFormData({ fullName: '', phone: '', dni: '', email: '' });
       setSelectedDate(undefined);
+      setSelectedTime(''); // Limpiamos la hora
       setSelectedServiceId('');
+      setIsSubmitting(false);
 
     } catch (error: any) {
       setSubmitStatus('error');
       setErrorMessage(error.message);
-    } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Liberamos el botón si hubo un fallo
     }
   };
 
-  // 6. RENDERIZADO CONDICIONAL DE ÉXITO
+  // 6. RENDERIZADO CONDICIONAL DE ÉXITO (Fallback)
   if (submitStatus === 'success') {
     return (
       <div className="p-8 text-center bg-green-50 rounded-xl border border-green-200">
@@ -248,10 +319,10 @@ export default function BookingForm() {
         </div>
 
         {/* COLUMNA DERECHA: Calendario con protección de espacio */}
-        <div className="flex flex-col items-center lg:items-end justify-start">
-          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 w-full max-w-sm">
+        <div className="flex flex-col items-center lg:items-start justify-start w-full">
+          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 w-full max-w-md mx-auto">
             <label className="block text-sm font-bold text-gray-700 text-center mb-4">
-              Fecha de la Evaluación
+              1. Selecciona la Fecha
             </label>
             {/* DayPicker: Ajustado para que no se desborde del contenedor gris */}
             <div className="flex justify-center bg-white p-2 rounded-xl shadow-inner">
@@ -262,15 +333,49 @@ export default function BookingForm() {
                 locale={es}
                 disabled={[
                   { before: new Date() },
-                  { dayOfWeek: [0] }
+                  { dayOfWeek: [0] } // Bloquea los domingos visualmente
                 ]}
               />
             </div>
-            {selectedDate && (
-              <p className="mt-4 text-center text-sm text-stone-600 font-medium">
-                {format(selectedDate, "PPP", { locale: es })}
-              </p>
+            
+            {/* ====================================================================
+            // SECCIÓN VISUAL DE HORARIOS (Aparece tras elegir día y tratamiento)
+            {/* ==================================================================== */}
+            {selectedDate && selectedServiceId && (
+              <div className="mt-8">
+                <label className="block text-sm font-bold text-gray-700 text-center mb-4">
+                  2. Selecciona la Hora
+                </label>
+                
+                {isLoadingSlots ? (
+                  <div className="text-center py-4 text-sm text-stone-500 animate-pulse font-medium">
+                    Calculando espacios disponibles...
+                  </div>
+                ) : availableSlots.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {availableSlots.map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-2 px-1 text-sm font-semibold rounded-lg border transition-all ${
+                          selectedTime === time
+                            ? 'bg-stone-800 text-white border-stone-800 shadow-md scale-105'
+                            : 'bg-white text-stone-600 border-gray-200 hover:border-stone-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 px-2 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200 text-sm font-medium">
+                    No hay espacios libres este día para la duración de este tratamiento. Por favor, elige otra fecha.
+                  </div>
+                )}
+              </div>
             )}
+            
           </div>
         </div>
 
@@ -278,14 +383,14 @@ export default function BookingForm() {
         <div className="lg:col-span-2 pt-6">
           <button 
             type="submit" 
-            disabled={isSubmitting}
+            disabled={isSubmitting || !selectedTime} // Desactivado si falta la hora
             className={`w-full py-4 px-6 rounded-2xl font-bold text-lg text-white transition-all shadow-md
-              ${isSubmitting 
+              ${(isSubmitting || !selectedTime)
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98] shadow-stone-200'
               }`}
           >
-            {isSubmitting ? 'Confirmando disponibilidad...' : 'Agendar Evaluación Ahora'}
+            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Abonar Seña de $50000 y Agendar'}
           </button>
         </div>
 

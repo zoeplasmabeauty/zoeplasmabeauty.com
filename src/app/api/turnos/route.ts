@@ -3,14 +3,16 @@
  * * ARQUITECTURA: Controlador Backend (Edge API Route)
  *
  * * PROPÓSITO:
- * Recibir las peticiones POST desde el formulario del frontend (Fase 2), 
+ * Recibir las peticiones POST desde el formulario del frontend, 
  * validar la información y orquestar la escritura segura en la base de datos D1.
- * * RESPONSABILIDADES:
+ * Genera un ticket de cobro (Preference) en Mercado Pago.
+ * * * RESPONSABILIDADES:
  * 1. Deserialización: Extraer y tipar el cuerpo de la petición (JSON).
  * 2. Validación: Asegurar que campos críticos como DNI, Teléfono y Email estén presentes.
  * 3. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
- * 4. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
- * * SEGURIDAD:
+ * 4. Pasarela de Pagos: Generar el enlace de pago dinámico de Mercado Pago.
+ * 5. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
+ * * * SEGURIDAD:
  * Utiliza el Edge Runtime de Cloudflare para ejecución cercana al usuario y 
  * validación estricta de tipos para evitar inyecciones o datos corruptos.
  */
@@ -18,10 +20,12 @@
 import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../db'; 
-import { patients, appointments } from '../../../db/schema';
+// Importamos 'services' y 'eq' para buscar el nombre real del tratamiento para el recibo de pago
+import { patients, appointments, services } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 import { getBookingConfirmationEmail } from '../../../lib/emailTemplates';
 
-// DIRECTIVA CRÍTICA: Fuerza la compilación para el Edge Runtime de Cloudflare.
+// Fuerza la compilación para el Edge Runtime de Cloudflare.
 // Esto permite que el código corra en los nodos globales de Cloudflare, no en un servidor central.
 export const runtime = 'edge';
 
@@ -101,86 +105,119 @@ export async function POST(request: Request) {
     .returning({ id: patients.id });
 
     // CREACIÓN DEL TURNO
+    // El turno nace como 'pending'. Solo cambiará a 'confirmed' cuando Mercado Pago avise que se pagó.
     const [newAppointment] = await db.insert(appointments).values({
       id: appointmentUUID,
       patientId: newPatient.id,
       serviceId,
       appointmentDate,
-      status: "pending",
+      status: "pending", 
     }).returning({ id: appointments.id });
 
     // ============================================================================
-    // NUEVA FASE: AUTOMATIZACIÓN DE CORREO TRANSACCIONAL (BREVO API)
+    // MÁQUINA DE PAGOS (MERCADO PAGO API)
     // ============================================================================
-    // Aislamiento Acústico (Try/Catch interno): Si el envío del correo falla 
-    // (ej. Brevo se cae), NO queremos que el paciente vea un error en rojo, 
-    // porque su turno SÍ se guardó en nuestra base de datos con éxito.
+    let checkoutUrl = "";
+
     try {
-      // 1. EXTRACCIÓN DE LA LLAVE (API KEY)
-      // Buscamos la variable en Cloudflare o en local. Forzamos el tipo Record para
-      // evitar que el Linter estricto de Next.js se queje por variables no declaradas.
+      const cloudflareEnv = env as unknown as Record<string, unknown>;
+      const mpAccessToken = (cloudflareEnv.MP_ACCESS_TOKEN as string) || process.env.MP_ACCESS_TOKEN;
+
+      if (!mpAccessToken) {
+        throw new Error("Token de Mercado Pago no configurado.");
+      }
+
+      // Buscamos el nombre real del servicio para que el recibo de Mercado Pago luzca profesional
+      const [servicioDB] = await db.select().from(services).where(eq(services.id, serviceId));
+      const nombreServicio = servicioDB ? servicioDB.name : "Tratamiento Estético";
+
+      // DEFINICIÓN ESTRICTA DE ENTORNO:
+      // Evitamos leer los headers locales de Cloudflare que causan strings rotos.
+      // Si estamos en producción usamos el dominio real, de lo contrario forzamos localhost estricto.
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://zoeplasmabeauty.com' 
+        : 'http://localhost:3000';
+
+      // Petición directa y segura a la API de Preferencias de Mercado Pago
+      const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${mpAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              title: `Reserva: ${nombreServicio}`,
+              description: `Turno de evaluación estética para ${fullName}`,
+              quantity: 1,
+              currency_id: "ARS",
+              unit_price: 50000 // SEÑA FIJA DE RESERVA. 
+            }
+          ],
+          payer: {
+            name: fullName,
+            email: email,
+          },
+          back_urls: {
+            success: `${baseUrl}/success`, // URL a la que vuelve si paga
+            failure: `${baseUrl}/`, // Si falla, vuelve al inicio
+            pending: `${baseUrl}/`
+          },
+          auto_return: "approved",
+          // EL PUENTE CRÍTICO: Adjuntamos el ID del turno para que Mercado Pago nos lo devuelva en el Webhook
+          external_reference: newAppointment.id 
+        })
+      });
+
+      const mpData = (await mpResponse.json()) as { init_point?: string };
+
+      if (!mpResponse.ok) {
+        console.error("Error de Mercado Pago:", mpData);
+        throw new Error("No se pudo generar el link de pago.");
+      }
+
+      // init_point es el enlace de cobro de Mercado Pago
+      if (!mpData.init_point) {
+        throw new Error("Mercado Pago no devolvió un enlace de cobro válido.");
+      }
+      checkoutUrl = mpData.init_point;
+
+    } catch (mpError) {
+      const msg = mpError instanceof Error ? mpError.message : 'Error desconocido de MP';
+      console.error("🔴 Fallo al generar pago:", msg);
+      // Opcional: Podrías decidir fallar todo el proceso si MP falla, pero por ahora
+      // solo lo capturamos.
+      return NextResponse.json({ error: "No se pudo generar el enlace de pago. Intenta de nuevo." }, { status: 500 });
+    }
+
+    // ============================================================================
+    // FASE MUDADA: AUTOMATIZACIÓN DE CORREO TRANSACCIONAL (BREVO API)
+    // ============================================================================
+    /*
+     * EL CÓDIGO DE BREVO HA SIDO COMENTADO Y DESACTIVADO TEMPORALMENTE AQUÍ.
+     * Motivo Arquitectónico: No queremos enviar el correo confirmando el turno
+     * ANTES de que el paciente pague. Este código exacto se moverá a la nueva ruta
+     * /api/webhooks/mercadopago en la Fase 3.
+     */
+    /*
+    try {
       const cloudflareEnv = env as unknown as Record<string, unknown>;
       const brevoApiKey = (cloudflareEnv.BREVO_API_KEY as string) || process.env.BREVO_API_KEY;
 
-      if (brevoApiKey) {
-        // 2. MASTERIZACIÓN DE FECHA (Timezone local)
-        // Convertimos el estándar ISO a texto legible, asegurando que respete
-        // el huso horario oficial independientemente de dónde esté alojado el servidor.
-        const fechaObjeto = new Date(appointmentDate);
-        const fechaFormateada = new Intl.DateTimeFormat('es-AR', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'America/Argentina/Buenos_Aires'
-        }).format(fechaObjeto);
-
-        // 3. DISEÑO DEL CORREO (PLANTILLA HTML IMPORTADA)
-        // llamamos a la librería → src/lib/emailTemplates.ts
-        // Si queremos cambiar colores o textos en el futuro, solo modificamos el archivo emailTemplates.ts
-        const emailHtml = getBookingConfirmationEmail({
-          fullName,
-          serviceId,
-          fechaFormateada,
-          phone
-        });
-
-        // 4. DISPARO DE LA SEÑAL (PETICIÓN POST A BREVO)
-        await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'api-key': brevoApiKey
-          },
-          body: JSON.stringify({
-            sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
-            to: [{ email: email, name: fullName }],
-            subject: "Evaluación Recibida - Zoe Plasma Beauty",
-            htmlContent: emailHtml
-          })
-        });
-        
-        console.log("📨 Correo enviado exitosamente vía Brevo a:", email);
-      } else {
-        console.warn("⚠️ Advertencia: BREVO_API_KEY no encontrada. Correo no enviado.");
-      }
-    } catch (emailError) {
-      // Prevención de tipado estricto: Evitamos usar "any" verificando la instancia del error
-      const msg = emailError instanceof Error ? emailError.message : 'Error desconocido';
-      console.error("🔴 Fallo en servicio auxiliar (Brevo):", msg);
-    }
+      if (brevoApiKey) { ... código de formateo y fetch a brevo ... }
+    } catch (emailError) { ... }
+    */
     // ============================================================================
 
     // RESPUESTA EXITOSA FINAL AL FRONTEND:
-    // Retornamos el appointmentId para que el frontend pueda mostrar la confirmación visual.
+    // Ahora retornamos la URL de Checkout (checkoutUrl) en lugar de un simple success
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Turno procesado correctamente",
-        appointmentId: newAppointment.id 
+        message: "Turno pre-registrado. Redirigiendo a pago...",
+        appointmentId: newAppointment.id,
+        checkoutUrl: checkoutUrl // INYECCIÓN: El frontend usará esto para redirigir
       }), 
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
