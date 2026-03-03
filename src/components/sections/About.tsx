@@ -33,8 +33,8 @@ export default function About() {
 
   useEffect(() => {
     // Parámetros de la animación
-    const target = 100; // El número final
-    const duration = 2000; // Duración en milisegundos (2 segundos)
+    const target = 3000; // El número final
+    const duration = 3000; // Duración en milisegundos (3 segundos)
 
     // Función que se dispara cuando el usuario ve la sección
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
