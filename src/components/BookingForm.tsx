@@ -499,7 +499,7 @@ export default function BookingForm() {
                 : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98] shadow-stone-200'
               }`}
           >
-            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Confirmar y Pagar'}
+            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Confirmar y Reservar'}
           </button>
         </div>
 

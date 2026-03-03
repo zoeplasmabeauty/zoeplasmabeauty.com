@@ -51,7 +51,7 @@ export default function Services() {
       description: "Procedimiento regenerativo que mejora la textura, profundidad y color de las estrías.",
       duration: "Aprox. 4 hrs",
       tag: "Alta Demanda",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg",
       extended: {
         fullDescription: "Procedimiento regenerativo que mejora visiblemente la textura, profundidad y color de las estrías estimulando la reparación cutánea. Resultado: piel más uniforme y regenerada.",
         result: "Piel más uniforme y regenerada",
@@ -71,7 +71,7 @@ export default function Services() {
       description: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía.",
       duration: "Aprox. 2 hrs",
       tag: "Rápido",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg",
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
       extended: {
         fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. Resultado: piel más limpia y uniforme.",
         result: "Piel más limpia y uniforme",
@@ -91,7 +91,7 @@ export default function Services() {
       description: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast.",
       duration: "Aprox. 1.5 hrs",
       tag: "Complementario",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
       extended: {
         fullDescription: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast. Resultado: mejora de textura, luminosidad y calidad de piel.",
         result: "Mejora de textura, luminosidad y calidad de piel",
