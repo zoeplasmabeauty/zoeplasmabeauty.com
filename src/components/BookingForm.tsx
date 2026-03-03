@@ -9,11 +9,13 @@
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
  * 5. Redirección automática a pasarela de cobro (Mercado Pago).
  * 6. Desglose de costos (Reserva + Impuestos MP).
+ * 7. Lógica de selección anidada (Categoría -> Variante) para soportar
+ * múltiples duraciones/precios bajo un mismo "Servicio Visual" sin alterar la estructura plana de D1.
  */
 
 'use client'; // Directiva estricta: Este código corre en el navegador del paciente.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -22,7 +24,7 @@ import { es } from 'date-fns/locale';
 interface Service {
   id: string;
   name: string;
-  duration_minutes: number;
+  durationMinutes: number; // Usamos durationMinutes 
 }
 
 export default function BookingForm() {
@@ -34,8 +36,13 @@ export default function BookingForm() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   
-  // 2. ESTADOS DEL FORMULARIO (DATA STATE)
+  // ----------------------------------------------------------------------
+  // ESTADOS DEL FORMULARIO (UX Categorizada)
+  // El usuario selecciona primero la categoría, y luego la opción exacta.
+  // ----------------------------------------------------------------------
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedServiceId, setSelectedServiceId] = useState('');
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState(''); // Guarda la hora clickeada por el usuario
   const [formData, setFormData] = useState({
@@ -56,10 +63,9 @@ export default function BookingForm() {
   // y asegurar la consistencia entre lo que ve el paciente y lo que se cobra en Mercado Pago.
   // ============================================================================
   const COSTO_RESERVA_BASE = 50000;
-  const PORCENTAJE_IMPUESTOS_MP = 0.0825; // 8.25% (Comisión + IVA + IIBB)
+  const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
   const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
   const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
-
 
   // 4. EXTRACCIÓN AL INICIAR (ON MOUNT)
   // Llama a tu ruta GET para poblar el select dinámicamente.
@@ -81,13 +87,49 @@ export default function BookingForm() {
   }, []);
 
   // ============================================================================
-  // 4.5. RADAR DE DISPONIBILIDAD (ESCUCHA DE CALENDARIO Y SERVICIO)
-  // Se dispara automáticamente cada vez que el usuario cambia el día o el tratamiento.
+  // LÓGICA DE AGRUPACIÓN (Mastering de Catálogo)
+  // Como la DB entrega una lista plana (6 items), React la procesa aquí para la UI.
+  // Identificamos las categorías por el nombre base (ej: "Plasma Fibroblast").
   // ============================================================================
+  const categories = useMemo(() => {
+    if (services.length === 0) return {};
+    
+    const grouped: Record<string, Service[]> = {
+      "Plasma Fibroblast": [],
+      "Tratamiento de estrias con plasma fibroblast": [],
+      "Eliminacion de lesiones benignas": [],
+      "Skin regeneration y tratamientos complementarios": []
+    };
+
+    services.forEach(service => {
+      // Usamos includes() para determinar a qué categoría pertenece cada variante plana
+      if (service.name.includes("Tratamiento de estrias")) {
+        grouped["Tratamiento de estrias con plasma fibroblast"].push(service);
+      } else if (service.name.includes("lesiones benignas")) {
+        grouped["Eliminacion de lesiones benignas"].push(service);
+      } else if (service.name.includes("Skin regeneration")) {
+        grouped["Skin regeneration y tratamientos complementarios"].push(service);
+      } else if (service.name.includes("Plasma Fibroblast") && !service.name.includes("estrias")) {
+        grouped["Plasma Fibroblast"].push(service);
+      } else {
+        // Fallback por si agregas un servicio que no coincide con los patrones
+        grouped[service.name] = [service];
+      }
+    });
+
+    // Limpiamos categorías vacías si faltan registros en la DB
+    Object.keys(grouped).forEach(key => {
+      if (grouped[key].length === 0) delete grouped[key];
+    });
+
+    return grouped;
+  }, [services]);
+
+
   useEffect(() => {
     async function fetchAvailableSlots() {
-      // Solo lanzamos el radar si tenemos ambos datos (Día y Tratamiento)
-      if (!selectedDate || !selectedServiceId) {
+        // Solo lanzamos el radar si tenemos ambos datos (Día y Tratamiento)
+        if (!selectedDate || !selectedServiceId) {
         setAvailableSlots([]);
         setSelectedTime(''); // Reseteamos la hora si cambia el día
         return;
@@ -116,9 +158,9 @@ export default function BookingForm() {
 
     fetchAvailableSlots();
   }, [selectedDate, selectedServiceId]); 
-  // Las dependencias indican que este efecto corre si cambia selectedDate o selectedServiceId
+    // Las dependencias indican que este efecto corre si cambia selectedDate o selectedServiceId
 
-  // 5. MANEJADOR DE ENVÍO (SUBMIT HANDLER)
+  // 5. MANEJADOR DE ENVÍO (SUBMIT HANDLER)  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Evita que la página se recargue
 
@@ -128,14 +170,11 @@ export default function BookingForm() {
       return;
     }
 
-    // NUEVA VALIDACIÓN LÓGICA: Auditoría estricta de longitud para el DNI.
-    // Como el input ya bloquea letras, solo evaluamos la cantidad de caracteres.
     if (formData.dni.length < 7 || formData.dni.length > 9) {
       setErrorMessage('El DNI debe contener entre 7 y 9 números.');
       return;
     }
 
-    // NUEVA VALIDACIÓN LÓGICA: Prevención de campos vacíos tras la limpieza de caracteres.
     if (!formData.phone) {
       setErrorMessage('Por favor, ingresa un número de WhatsApp válido.');
       return;
@@ -152,7 +191,7 @@ export default function BookingForm() {
       // identificador de huso horario de Buenos Aires (-03:00) para forzar 
       // que el servidor guarde el momento exacto sin importar en qué país 
       // esté corriendo el Edge de Cloudflare.
-      // ----------------------------------------------------------------------
+      // ----------------------------------------------------------------------    
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const localDateTimeStr = `${dateStr}T${selectedTime}:00.000-03:00`;
       
@@ -164,7 +203,7 @@ export default function BookingForm() {
         phone: formData.phone,
         dni: formData.dni,
         email: formData.email, // INYECCIÓN: Email enviado al backend
-        serviceId: selectedServiceId,
+        serviceId: selectedServiceId, // Enviamos el ID específico (ej: Fibroblast 120min)
         appointmentDate: appointmentDate
       };
 
@@ -187,7 +226,6 @@ export default function BookingForm() {
       if (result.checkoutUrl) {
         // Saltamos directamente al cobro
         window.location.href = result.checkoutUrl;
-        
         // Dejamos la función aquí. El navegador ya está cargando la nueva URL.
         // No cambiamos setIsSubmitting a false para que el botón siga diciendo "Confirmando..." 
         // y el paciente no haga doble clic.
@@ -201,6 +239,7 @@ export default function BookingForm() {
       setFormData({ fullName: '', phone: '', dni: '', email: '' });
       setSelectedDate(undefined);
       setSelectedTime(''); // Limpiamos la hora
+      setSelectedCategory('');
       setSelectedServiceId('');
       setIsSubmitting(false);
 
@@ -243,7 +282,6 @@ export default function BookingForm() {
         </div>
       )}
 
-      {/* AJUSTE DE GRIDS: Separación aumentada (gap-12) para evitar que el calendario toque los inputs */}
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         
         {/* COLUMNA IZQUIERDA: Datos del Paciente */}
@@ -266,14 +304,11 @@ export default function BookingForm() {
               <input 
                 type="text" 
                 required
-                // ATRIBUTOS HTML NATIVOS: Bloquean el ingreso más allá de 9 caracteres por defecto.
                 minLength={7}
                 maxLength={9}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition bg-gray-50/50"
                 value={formData.dni}
                 onChange={(e) => {
-                  // MODIFICACIÓN UX: replace(/\D/g, '') intercepta lo que el usuario tipea y elimina
-                  // instantáneamente cualquier cosa que no sea un dígito numérico.
                   const soloNumeros = e.target.value.replace(/\D/g, '');
                   setFormData({...formData, dni: soloNumeros});
                 }}
@@ -288,8 +323,6 @@ export default function BookingForm() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition bg-gray-50/50"
                 value={formData.phone}
                 onChange={(e) => {
-                  // MODIFICACIÓN UX: Al igual que el DNI, limpiamos espacios, símbolos (+, -) o letras,
-                  // forzando un string limpio de puros números para la base de datos.
                   const soloNumeros = e.target.value.replace(/\D/g, '');
                   setFormData({...formData, phone: soloNumeros});
                 }}
@@ -298,7 +331,6 @@ export default function BookingForm() {
             </div>
           </div>
 
-          {/* NUEVO: Campo de Email para notificaciones profesionales */}
           <div>
             <label className="block text-sm font-semibold text-gray-600 mb-2">Correo Electrónico</label>
             <input 
@@ -311,23 +343,61 @@ export default function BookingForm() {
             />
           </div>
 
+          {/* ====================================================================
+              SELECCIÓN ANIDADA (Categoría -> Variante)
+              ==================================================================== */}
           <div>
             <label className="block text-sm font-semibold text-gray-600 mb-2">Tratamiento de Interés</label>
             <select 
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition bg-white"
-              value={selectedServiceId}
-              onChange={(e) => setSelectedServiceId(e.target.value)}
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedServiceId(''); // Reseteamos la variante si cambia la categoría principal
+                setAvailableSlots([]);
+              }}
               disabled={isLoadingServices}
             >
               <option value="" disabled>Selecciona un servicio...</option>
-              {services.map(service => (
-                <option key={service.id} value={service.id}>
-                  {service.name} ({service.duration_minutes} min)
-                </option>
+              {Object.keys(categories).map(catName => (
+                <option key={catName} value={catName}>{catName}</option>
               ))}
             </select>
           </div>
+
+          {/* Renderizado Condicional: Solo aparece si la categoría tiene múltiples opciones */}
+          {selectedCategory && categories[selectedCategory]?.length > 1 && (
+             <div>
+               <label className="block text-sm font-semibold text-[var(--color-zoe-blue)] mb-2">Variante del Tratamiento</label>
+               <select 
+                 required
+                 className="w-full px-4 py-3 border border-[var(--color-zoe-blue)]/30 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition bg-blue-50/50"
+                 value={selectedServiceId}
+                 onChange={(e) => setSelectedServiceId(e.target.value)}
+               >
+                 <option value="" disabled>Selecciona una opción específica...</option>
+                 {categories[selectedCategory].map(service => {
+                   // Limpiamos el nombre para que el usuario no lea información redundante
+                   const cleanName = service.name.replace(selectedCategory, "").replace("-", "").trim();
+                   return (
+                     <option key={service.id} value={service.id}>
+                       {cleanName || service.name} ({service.durationMinutes} min)
+                     </option>
+                   );
+                 })}
+               </select>
+             </div>
+          )}
+
+          {/* Si la categoría solo tiene una opción, la auto-seleccionamos detrás de escena */}
+          {selectedCategory && categories[selectedCategory]?.length === 1 && (() => {
+            if (selectedServiceId !== categories[selectedCategory][0].id) {
+               setSelectedServiceId(categories[selectedCategory][0].id);
+            }
+            return null;
+          })()}
+
         </div>
 
         {/* COLUMNA DERECHA: Calendario con protección de espacio */}
@@ -393,8 +463,8 @@ export default function BookingForm() {
 
         {/* BOTÓN DE ACCIÓN Y DESGLOSE FINANCIERO: Ocupa toda la base de la grilla */}
         <div className="lg:col-span-2 pt-6">
-          
-          {/* INYECCIÓN: Caja de Desglose de Costos (Solo se muestra si hay una hora seleccionada) */}
+
+          {/* INYECCIÓN: Caja de Desglose de Costos (Solo se muestra si hay una hora seleccionada) */}      
           {selectedTime && (
             <div className="mb-6 p-5 bg-stone-50 border border-stone-200 rounded-2xl max-w-xl mx-auto">
               <h4 className="text-sm font-bold text-stone-800 uppercase tracking-wider mb-4 border-b border-stone-200 pb-2">

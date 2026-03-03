@@ -1,11 +1,15 @@
--- ARCHIVO: src/db/seed.sql
--- ARQUITECTURA: Script de Sembrado Inicial (Operación de única ejecución)
--- PROPÓSITO: Poblar la tabla 'services' con el catálogo oficial de Zoe Plasma Beauty.
--- NOTA: Se utilizan IDs estáticos y legibles ('srv_01...') para facilitar la depuración 
--- y la vinculación manual durante la Fase 1.
+-- Insertamos los nuevos registros maestros.
+INSERT INTO services (id, name, duration_minutes, price, is_active) VALUES 
+-- CATEGORÍA 1: Plasma Fibroblast
+('fibro-fullface-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Full face', 240, 350000, true),
+('fibro-corporal-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area corporal', 240, 300000, true),
+('fibro-facial-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area facial', 120, 220000, true),
 
-INSERT OR REPLACE INTO services (id, name, duration_minutes, is_active) VALUES
-('srv_01_lifting', 'Lifting Facial sin Cirugía (Fibroblast)', 60, 1),
-('srv_02_blefaro', 'Blefaroplastia No Invasiva', 45, 1),
-('srv_03_estrias', 'Eliminación de Estrías', 90, 1),
-('srv_04_verrugas', 'Remoción de Verrugas y Manchas', 30, 1);
+-- CATEGORÍA 2: Estrías
+('estrias-unica-uuid', 'Tratamiento de estrias con plasma fibroblast', 240, 350000, true),
+
+-- CATEGORÍA 3: Lesiones
+('lesiones-unica-uuid', 'Eliminacion de lesiones benignas', 120, 280000, true),
+
+-- CATEGORÍA 4: Skin
+('skin-unica-uuid', 'Skin regeneration y tratamientos complementarios', 90, 0, true);

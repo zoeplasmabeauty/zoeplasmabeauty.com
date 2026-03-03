@@ -11,6 +11,7 @@
  * 2. Integridad Referencial: Establecer relaciones (Foreign Keys) y reglas de borrado.
  * 3. Validación de Capa de Datos: Impedir mediante restricciones (notNull, unique) que 
  * entren datos corruptos o incompletos al sistema.
+ * 4. Gestiona el costo total de los tratamientos vs la seña.
  */
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
@@ -50,6 +51,9 @@ export const services = sqliteTable("services", {
   name: text("name").notNull(), // Ej: "Blefaroplastia No Invasiva"
   
   durationMinutes: integer("duration_minutes").notNull(), // Ej: 45
+  
+  // Precio completo del servicio. Permite guardar valor total, aunque la seña sea fija.
+  price: integer("price").notNull().default(0), 
   
   // Permite desactivar servicios sin borrarlos, manteniendo la integridad de turnos históricos.
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true), 

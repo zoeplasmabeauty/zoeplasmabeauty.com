@@ -218,11 +218,11 @@ export default function Contact() {
                 
                 <div className="flex justify-between border-b border-gray-100 pb-2 text-sm">
                   <span className="font-bold text-[var(--color-zoe-muted)]">Lunes a Viernes</span>
-                  <span className="font-bold text-[var(--color-zoe-dark)]">10:00 - 19:00</span>
+                  <span className="font-bold text-[var(--color-zoe-dark)]">10:00 - 18:00</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-100 pb-2 text-sm">
-                  <span className="font-bold text-[var(--color-zoe-muted)]">Sábados</span>
-                  <span className="font-bold text-[var(--color-zoe-dark)]">10:00 - 14:00</span>
+                  <span className="font-bold text-[var(--color-zoe-muted)]">Sábados y feriados</span>
+                  <span className="font-bold text-[var(--color-zoe-dark)]">12:00 - 18:00</span>
                 </div>
                 <div className="flex justify-between pb-2 text-sm">
                   <span className="font-bold text-[var(--color-zoe-muted)]">Domingos</span>

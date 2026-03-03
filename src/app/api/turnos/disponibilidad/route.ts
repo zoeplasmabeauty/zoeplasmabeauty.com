@@ -6,10 +6,10 @@
  * qué bloques de 30 minutos están libres en un día específico, cruzando el horario 
  * de apertura de la clínica, la duración del tratamiento deseado y los turnos ya existentes.
  * * RESPONSABILIDADES:
- * 1. Reglas de Negocio: Aplica horarios de L a V (10 a 19hs) y Sábados (12 a 19hs).
+ * 1. Reglas de Negocio: Aplica horarios de L a V (10 a 18hs) y Sábados (12 a 18hs).
  * 2. Extracción: Obtiene los turnos de ese día y sus duraciones desde la BD.
  * 3. Cálculo de Solapamiento: Elimina las horas donde un turno nuevo chocaría con uno viejo.
- * 4. Control de Cierre: Evita que se agende un turno de 60 mins a las 18:30 (cierra a las 19:00).
+ * 4. Control de Cierre: Evita que se agende un turno de 60 mins a las 17:30 (cierra a las 18:00).
  */
 
 import { NextResponse } from 'next/server';
@@ -26,7 +26,7 @@ export const runtime = 'edge';
 // CONFIGURACIÓN DE LA CLÍNICA (Reglas estáticas)
 const TIMEZONE = 'America/Argentina/Buenos_Aires';
 const INTERVALO_MINUTOS = 30; // Bloques de media hora
-const HORA_CIERRE = 19; 
+const HORA_CIERRE = 18;
 
 export async function GET(request: Request) {
   try {

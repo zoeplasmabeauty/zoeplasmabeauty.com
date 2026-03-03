@@ -176,7 +176,7 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
               {/* LISTA DE BENEFICIOS (Renderizado Mapeado) */}
               {service.extended?.benefits && service.extended.benefits.length > 0 && (
                 <div className="mb-8">
-                  <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Áreas de Aplicación / Beneficios</h4>
+                  <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Zonas a mejorar</h4>
                   <ul className="space-y-3">
                     {service.extended.benefits.map((benefit, i) => (
                       <li key={i} className="flex items-start">

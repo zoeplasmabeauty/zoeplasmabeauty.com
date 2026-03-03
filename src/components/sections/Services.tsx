@@ -40,9 +40,9 @@ export default function Services() {
           "Flacidez facial y corporal"
         ],
         priceTable: [
-          { type: "Full face | 4 horas", cost: "$350.000 ARS" },
-          { type: "Por area Corporal | 4 horas.", cost: "$300.000 ARS" },
-          { type: "Por area facial | 2 horas", cost: "$220.000 ARS" }
+          { type: "4 horas Full face", cost: "$350.000 ARS" },
+          { type: "4 horas cada zona Corporal", cost: "$350.000 ARS" },
+          { type: "2 horas por area facial", cost: "$220.000 ARS" }
         ]
       }
     },
