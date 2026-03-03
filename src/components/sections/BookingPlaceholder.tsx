@@ -53,7 +53,7 @@ export default function BookingPlaceholder() {
                   Reserva tu <span className="text-[var(--color-zoe-blue)]">Evaluación</span>
                 </h2>
                 <p className="mb-10 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-                  Cada rostro y cuerpo es único. En esta etapa inicial, gestionamos nuestras citas de forma personalizada para garantizar que el tratamiento de plasma elegido sea el adecuado para tus objetivos.
+                  Cada rostro y cuerpo es único. En esta etapa inicial, gestionamos nuestros turnos de forma personalizada para garantizar que el tratamiento de plasma elegido sea el adecuado para tus objetivos.
                 </p>
               </div>
 

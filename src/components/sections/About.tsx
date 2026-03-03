@@ -90,7 +90,7 @@ export default function About() {
   const coreValues = [
     {
       title: "Tecnología de Punta",
-      description: "Equipos electrónicos de última generación para resultados precisos.",
+      description: "El Plasma Fibroblast es lo mas novedoso en rejuvenecimiento y mejora de la piel.",
       icon: (
         <svg className="h-6 w-6 text-[var(--color-zoe-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -99,7 +99,7 @@ export default function About() {
     },
     {
       title: "No Invasivo",
-      description: "Tratamientos seguros que respetan la integridad de tu piel sin cirugías.",
+      description: "Procedimiento estético no quirúrgico que trabaja sobre la superficie de la piel sin cortes ni suturas.",
       icon: (
         <svg className="h-6 w-6 text-[var(--color-zoe-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -108,7 +108,7 @@ export default function About() {
     },
     {
       title: "Recuperación Rápida",
-      description: "Minimizamos el tiempo de inactividad para que retomes tu rutina de inmediato.",
+      description: "Gracias a su aplicación precisa, la piel activa rápidamente su proceso de reparación natural.",
       icon: (
         <svg className="h-6 w-6 text-[var(--color-zoe-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -117,7 +117,7 @@ export default function About() {
     },
     {
       title: "Resultados Visibles",
-      description: "Cambios medibles y estéticos desde las primeras sesiones del tratamiento.",
+      description: "Cambios visibles desde la primera sesión, los resultados continuan mejorando en semanas posteriores.",
       icon: (
         <svg className="h-6 w-6 text-[var(--color-zoe-blue)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -149,7 +149,10 @@ export default function About() {
               Elevando el estándar de la <span className="text-[var(--color-zoe-blue)]">estética moderna.</span>
             </h2>
             <p className="mb-6 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-              En <strong className="font-extrabold text-[var(--color-zoe-dark)]">Zoe plasma Beauty</strong>, no creemos en soluciones genéricas. Nuestro enfoque combina la precisión de la aparatología electrónica con un profundo conocimiento de la anatomía facial y corporal.
+              En <strong className="font-extrabold text-[var(--color-zoe-dark)]">Zoe plasma Beauty</strong>, trabajamos con tecnología avanzada que estimula la regeneración natural para mejorar la piel sin cirugía mediante técnicas personalizadas.
+            </p>
+            <p className="mb-8 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
+              El paso del tiempo, la flacidez y las imperfecciones cutáneas pueden afectar cómo nos sentimos con nuestra piel.
             </p>
             <p className="mb-8 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
               La tecnología de plasma nos permite sublimar tejidos de forma controlada, ofreciendo alternativas reales a procedimientos quirúrgicos, con menor riesgo y resultados excepcionales.

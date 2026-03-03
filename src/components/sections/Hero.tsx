@@ -35,12 +35,12 @@ export default function Hero() {
         
         {/* H1: TÍTULO PRINCIPAL (Texto oscuro por defecto, resaltado en azul de marca) */}
         <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-7xl md:text-8xl">
-          Redefine tu belleza con <span className="text-[var(--color-zoe-blue)] drop-shadow-sm">Tecnología Plasma</span>
+          Redefine tu belleza con <span className="text-[var(--color-zoe-blue)] drop-shadow-sm">Tecnología Plasma Fibroflast</span>
         </h1>
         
         {/* DESCRIPCIÓN SECUNDARIA (Gris azulado para no competir con el título) */}
         <p className="mx-auto mb-10 max-w-2xl text-lg text-[var(--color-zoe-muted)] sm:text-xl font-medium">
-          Tratamientos no invasivos con equipos electrónicos de última generación. Resultados visibles, recuperación rápida y máxima seguridad para tu piel.
+          Rejuvenecimiento real sin cirugía. Especialistas en Plasma Fibroblast y regeneración avanzada de la piel.
         </p>
         
         {/* LLAMADOS A LA ACCIÓN (Botones) */}
