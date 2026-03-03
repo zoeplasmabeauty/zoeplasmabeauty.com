@@ -1,7 +1,5 @@
-import Image from "next/image";
-
 /**
- * src\components\sections\Services.tsx
+ * ARCHIVO: src/components/sections/Services.tsx
  * * COMPONENTE: Services.tsx
  * ARQUITECTURA: Sección de Landing Page / Catálogo de Conversión
  * * PROPÓSITO ESTRATÉGICO: 
@@ -14,50 +12,104 @@ import Image from "next/image";
  * inyectando tráfico directo a tu embudo de ventas.
  * 3. Mantenibilidad: Los datos de los servicios están aislados en un arreglo (Array), 
  * lo que permite actualizar precios o descripciones sin tocar el código visual (HTML).
+ * 4. Implementación del modelo de datos y delegación de la UI al componente ServiceCardDynamic.
  */
 
+import ServiceCardDynamic from '../ServiceCardDynamic';
+
 export default function Services() {
-  // DICCIONARIO DE SERVICIOS: Centralizamos los datos del catálogo.
+  // DICCIONARIO DE SERVICIOS AMPLIADO: 
+  // Centralizamos los datos del catálogo.
   // Nota: 'imageUrl' actualmente usa colores sólidos como marcadores de posición.
   // Deberás reemplazar estos colores por rutas de imágenes reales (.jpg o .webp).
   const servicesData = [
     {
-      title: "Lifting Facial sin Cirugía",
-      // Esta descripción coincide con la de la imagen de ejemplo.
-      description: "RETRACCIÓN DE LA PIEL MEDIANTE TECNOLOGÍA PLASMA (FIBROBLAST). IDEAL PARA FLACIDEZ EN MEJILLAS, CUELLO Y ÓVALO FACIAL.",
-      // La duración también coincide con el ejemplo visual.
-      duration: "60 min",
-      // Tag visual, como se ve en el ejemplo ("MÁS POPULAR").
+      title: "Plasma Fibroblast",
+      description: "Tratamiento avanzado para tratar arrugas y exceso de piel facial y corporal.",
+      duration: "Aprox. 2-4 hrs", // Generalized for the card front
       tag: "Más Popular", 
-      // Marcador de posición de imagen (usando un color sólido azul oscuro).
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg", // Reemplazar con imagen real del procedimiento.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg",
+      // Datos extendidos para el Modal (Drawer)
+      extended: {
+        fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno. Resultado: piel más firme, lisa y rejuvenecida de forma natural.",
+        result: "Piel más firme, lisa y rejuvenecida de forma natural.",
+        benefits: [
+          "Area orbital",
+          "Área frontal",
+          "Area peribucal",
+          "Flacidez facial y corporal"
+        ],
+        priceTable: [
+          { type: "Full face | 4 horas", cost: "$350.000 ARS" },
+          { type: "Por area Corporal | 4 horas.", cost: "$300.000 ARS" },
+          { type: "Por area facial | 2 horas", cost: "$220.000 ARS" }
+        ]
+      }
     },
     {
-      title: "Blefaroplastia No Invasiva",
-      description: "Levantamiento de párpados caídos y reducción de bolsas u ojeras sin cortes ni suturas. Mirada rejuvenecida.",
-      duration: "45 min",
+      title: "Tratamiento de Estrías con Plasma Fibroblast",
+      description: "Procedimiento regenerativo que mejora la textura, profundidad y color de las estrías.",
+      duration: "Aprox. 4 hrs",
       tag: "Alta Demanda",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg", // Reemplazar con imagen real.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
+      extended: {
+        fullDescription: "Procedimiento regenerativo que mejora visiblemente la textura, profundidad y color de las estrías estimulando la reparación cutánea. Resultado: piel más uniforme y regenerada.",
+        result: "Piel más uniforme y regenerada",
+        benefits: [
+          "Estrías nacaradas y vasculares",
+          "Abdomen",
+          "Axilas",
+          "Glúteos"
+        ],
+        priceTable: [
+          { type: "4 horas", cost: "$350.000 ARS" }
+        ]
+      }
     },
     {
-      title: "Eliminación de Estrías",
-      description: "Tratamiento focalizado para regenerar el colágeno en estrías blancas y rojas, mejorando drásticamente la textura de la piel.",
-      duration: "90 min",
-      tag: null,
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg", // Reemplazar con imagen real.
-    },
-    {
-      title: "Remoción de Verrugas y Manchas",
-      description: "Sublimación precisa de lesiones benignas de la piel, verrugas, léntigos solares y acrocordones en una sola sesión.",
-      duration: "30 min",
+      title: "Eliminación de Lesiones Benignas",
+      description: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía.",
+      duration: "Aprox. 2 hrs",
       tag: "Rápido",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg", // Reemplazar con imagen real.
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg",
+      extended: {
+        fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. Resultado: piel más limpia y uniforme.",
+        result: "Piel más limpia y uniforme",
+        benefits: [
+          "Acrocordones",
+          "Lentigos",
+          "Queratosis",
+          "Manchas y lesiones benignas dérmicas"
+        ],
+        priceTable: [
+          { type: "Por área corporal | 2 horas", cost: "$280.000 ARS" }
+        ]
+      }
+    },
+    {
+      title: "Skin Regeneration y Tratamientos Complementarios",
+      description: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast.",
+      duration: "Aprox. 1.5 hrs",
+      tag: "Complementario",
+      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
+      extended: {
+        fullDescription: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast. Resultado: mejora de textura, luminosidad y calidad de piel.",
+        result: "Mejora de textura, luminosidad y calidad de piel",
+        benefits: [
+          "Dermapen",
+          "Dermaplaning",
+          "Peeling de algas",
+          "Exosomas regenerativos"
+        ],
+        priceTable: [
+          { type: "1 hora y media", cost: "Precio previa evaluación" }
+        ]
+      }
     },
   ];
 
   return (
     // CONTENEDOR DE SECCIÓN
-    // INVERSIÓN VISUAL: Removido bg-black y text-white para heredar el entorno Clinical Light.
     <section id="servicios" className="scroll-mt-24 px-6 py-24">
       
       {/* CAJA CENTRAL */}
@@ -75,89 +127,14 @@ export default function Services() {
         </div>
 
         {/* GRILLA DE SERVICIOS:
-            - grid-cols-1: Móviles (una tarjeta por fila).
-            - lg:grid-cols-1: En este diseño avanzado, mantenemos una tarjeta por fila 
-              incluso en escritorio, pero expandimos el ancho de la tarjeta. */}
+            - grid-cols-1: Mantenemos una tarjeta por fila incluso en escritorio, 
+              pero expandimos el ancho de la tarjeta para acomodar la asimetría. */}
         <div className="grid gap-12 grid-cols-1">
           
-          {/* ITERACIÓN DEL CATÁLOGO */}
+          {/* ITERACIÓN DEL CATÁLOGO 
+              Ahora delegamos el renderizado de la UI a nuestro componente de cliente */}
           {servicesData.map((service, index) => (
-            // TARJETA DE SERVICIO PREMIUM (Layout Asimétrico):
-            // Divide la tarjeta en dos columnas: 40% imagen, 60% texto.
-            // INVERSIÓN VISUAL: De fondo oscuro a cristal esmerilado blanco (bg-white/80).
-            <div 
-              key={index} 
-              className="group relative flex flex-col items-stretch overflow-hidden rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-zoe-blue)]/40 hover:bg-white hover:shadow-xl hover:shadow-[var(--color-zoe-blue)]/10 md:flex-row"
-            >
-              
-              {/* COLUMNA 1: CONTENEDOR DE IMAGEN (Replicando image_3.png) */}
-              <div className="relative w-full overflow-hidden md:w-2/5">
-                {/* La Imagen Real */}
-                <Image
-                  src={service.imageUrl} 
-                  alt={`Imagen ilustrativa del tratamiento: ${service.title}`} 
-                  fill
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                />
-                
-                {/* EL "DIFUMINADO" (Gradient Fade):
-                    Esta capa negra absoluta se superpone a la imagen y crea el degradado 
-                    que se funde con el fondo de la tarjeta.
-                    - En móvil: Difumina de abajo hacia arriba.
-                    - En escritorio (md): Difumina de izquierda a derecha. 
-                    INVERSIÓN VISUAL: Ahora difumina hacia blanco/transparente en lugar de negro. */}
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent md:bg-gradient-to-r md:from-transparent md:via-white/50 md:to-white"></div>
-              </div>
-
-              {/* COLUMNA 2: CONTENIDO DE TEXTO (A la derecha, como en el ejemplo) */}
-              <div className="relative z-10 flex w-full flex-col justify-between p-8 md:w-3/5">
-                
-                {/* ÁREA SUPERIOR: Etiqueta (Tag) "Más Popular" (o similar) */}
-                <div className="mb-6 flex justify-end">
-                  {service.tag && (
-                    <span className="rounded-full bg-[var(--color-zoe-blue)]/10 px-3 py-1 text-xs font-bold tracking-wider text-[var(--color-zoe-blue)] uppercase">
-                      {service.tag}
-                    </span>
-                  )}
-                </div>
-
-                {/* ÁREA CENTRAL: Información del servicio */}
-                <div className="mb-10 flex-grow">
-                  <h3 className="mb-4 text-3xl font-bold text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
-                    {service.title}
-                  </h3>
-                  {/* Descripción técnica, en mayúsculas como en el ejemplo */}
-                  <p className="mb-6 text-base font-medium leading-relaxed text-[var(--color-zoe-muted)] uppercase">
-                    {service.description}
-                  </p>
-                  
-                  {/* Ficha técnica mínima (Duración), alineada a la derecha */}
-                  <div className="flex items-center justify-end gap-2 text-sm font-bold text-[var(--color-zoe-muted)] opacity-80">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Duración aprox: {service.duration}
-                  </div>
-                </div>
-
-                {/* ÁREA INFERIOR: Call To Action (Botón de Agendar) */}
-                {/* Separador sutil */}
-                <div className="mt-auto border-t border-[var(--color-zoe-blue)]/10 pt-6">
-                  <a 
-                    href="#agendar" 
-                    className="flex items-center justify-end gap-3 text-base font-extrabold text-[var(--color-zoe-blue)] transition-colors hover:text-[#4375af]"
-                  >
-                    {/* El texto del botón coincide con el ejemplo */}
-                    Agendar este tratamiento
-                    {/* Flecha indicadora de acción */}
-                    <svg className="h-6 w-6 transform transition-transform group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </a>
-                </div>
-
-              </div>
-            </div>
+            <ServiceCardDynamic key={index} service={service} />
           ))}
           
         </div>
