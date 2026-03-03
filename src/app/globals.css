@@ -17,6 +17,13 @@
  * Se elimina deliberadamente la media query de "dark mode" para proteger la integridad del diseño.
  */
 :root {
+  /* INYECCIÓN CRÍTICA DE UX: Candado contra el Modo Oscuro.
+   * La propiedad 'color-scheme: light' le prohíbe explícitamente a los navegadores 
+   * (especialmente Chrome en Android y Safari en iOS) aplicar "auto-dark-mode" o 
+   * invertir colores. Obliga a que toda la interfaz nativa se renderice en modo claro.
+   */
+  color-scheme: light;
+
   --background: var(--color-zoe-mint);
   --foreground: var(--color-zoe-dark);
 }
