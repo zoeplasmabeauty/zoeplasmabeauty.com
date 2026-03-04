@@ -34,9 +34,10 @@ CREATE TABLE services (
 
 CREATE TABLE appointments (
   id TEXT PRIMARY KEY NOT NULL,
-  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  service_id TEXT NOT NULL REFERENCES services(id) ON DELETE RESTRICT,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON UPDATE no action ON DELETE CASCADE,
+  service_id TEXT NOT NULL REFERENCES services(id) ON UPDATE no action ON DELETE RESTRICT,
   appointment_date TEXT NOT NULL,
+  custom_duration_minutes INTEGER,
   status TEXT NOT NULL DEFAULT 'awaiting_triage',
   notes TEXT,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())

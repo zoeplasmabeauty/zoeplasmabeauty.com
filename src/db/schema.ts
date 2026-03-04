@@ -6,6 +6,7 @@
  * Definir la estructura de datos fidedigna de la aplicación. Actúa como la "Única Fuente de Verdad" 
  * (Single Source of Truth), asegurando que las tablas de la base de datos reflejen con precisión 
  * las entidades de negocio.
+ * Permite reprogramaciones con tiempos personalizados por paciente sin afectar el catálogo general de servicios.
  * * * RESPONSABILIDADES:
  * 1. Modelado de Entidades: Definir tablas (Pacientes, Servicios, Turnos) y sus tipos de datos.
  * 2. Integridad Referencial: Establecer relaciones (Foreign Keys) y reglas de borrado.
@@ -90,6 +91,13 @@ export const appointments = sqliteTable("appointments", {
   appointmentDate: text("appointment_date").notNull(), 
   
   // ====================================================================
+  // CONTROL DE TIEMPO PERSONALIZADO
+  // Permite al admin modificar la duración de un turno específico por 
+  // complejidad del paciente sin alterar la tabla 'services'.
+  // ====================================================================
+  customDurationMinutes: integer("custom_duration_minutes"), 
+
+  // ====================================================================
   // MOTOR DE ESTADOS (STATE MACHINE)
   // Controla en qué punto del embudo de aprobación y pago se encuentra el turno.
   // ====================================================================
@@ -100,7 +108,7 @@ export const appointments = sqliteTable("appointments", {
     "confirmed",       // 4. Pago recibido. Turno 100% oficial.
     "rejected",        // 5. Admin rechazó por contraindicaciones médicas.
     "completed",       // 6. El paciente asistió y se realizó el tratamiento.
-    "cancelled"        // 7. El paciente canceló o el tiempo de pago expiró.
+    "cancelled"        // 7. El paciente canceló o el tiempo de pago expiró (O admin lo cancela manualmente).
   ] })
     .notNull()
     .default("awaiting_triage"),

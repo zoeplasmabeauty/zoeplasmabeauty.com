@@ -6,11 +6,12 @@
  * Lee y formatea los datos de la base de datos para mostrarlos en una tabla clínica.
  * Soporta el flujo de Triage, permitiendo al admin ver 
  * el estado real del turno y abrir las fichas médicas para su aprobación.
+ * Comprende funciones de Reprogramación y Cancelación Manual para turnos en estados específicos.
  * * RESPONSABILIDADES:
  * 1. Orquestación: Hacer la petición a la API segura (/api/admin/turnos).
  * 2. Renderizado Seguro: Mostrar la información sensible de los pacientes.
  * 3. Formateo: Convertir las fechas ISO de la base de datos a formato horario local.
- * 4. Gestión de Acciones: Permitir la revisión de turnos en estado 'under_review'.
+ * 4. Gestión de Acciones: Permitir la revisión de turnos, cancelaciones y reprogramaciones.
  */
 
 'use client';
@@ -38,6 +39,14 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   
+  // Control del Modal de Reprogramación
+  const [isReprogramModalOpen, setIsReprogramModalOpen] = useState(false);
+  const [selectedTurnoId, setSelectedTurnoId] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('');
+  const [newDuration, setNewDuration] = useState(''); // Para customDurationMinutes
+  const [isActionLoading, setIsActionLoading] = useState(false); // Para spinners en botones
+
   // Instanciamos el enrutador para empujar al usuario tras cerrar sesión o al ver detalles
   const router = useRouter();
 
@@ -92,6 +101,81 @@ export default function DashboardPage() {
     }
   };
 
+  // ============================================================================
+  // FUNCIONES DE GESTIÓN (CANCELAR Y REPROGRAMAR)
+  // ============================================================================
+
+  // A. Cancelar/Rechazar un turno manualmente
+  const handleCancelarTurno = async (appointmentId: string) => {
+    if (!window.confirm("¿Estás seguro de cancelar este turno? El espacio quedará liberado en la agenda.")) return;
+    
+    setIsActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/turnos/modificar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId, action: 'cancel' })
+      });
+
+      if (!res.ok) throw new Error("No se pudo cancelar el turno.");
+      
+      alert("Turno cancelado exitosamente.");
+      fetchTurnos(); // Recargamos la tabla
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // B. Abrir Modal de Reprogramación
+  const openReprogramModal = (appointmentId: string) => {
+    setSelectedTurnoId(appointmentId);
+    setNewDate('');
+    setNewTime('');
+    setNewDuration('');
+    setIsReprogramModalOpen(true);
+  };
+
+  // C. Ejecutar Reprogramación
+  const handleReprogramarTurno = async () => {
+    if (!selectedTurnoId || !newDate || !newTime) {
+      alert("Debes seleccionar una fecha y hora.");
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      // Construimos el string ISO concatenando fecha y hora local asumiendo huso horario AR
+      const isoDateString = new Date(`${newDate}T${newTime}:00-03:00`).toISOString();
+
+      const res = await fetch('/api/admin/turnos/modificar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          appointmentId: selectedTurnoId, 
+          action: 'reprogram',
+          newDateISO: isoDateString,
+          customDuration: newDuration ? parseInt(newDuration) : null 
+        })
+      });
+
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "No se pudo reprogramar.");
+      
+      alert("Turno reprogramado exitosamente.");
+      setIsReprogramModalOpen(false);
+      fetchTurnos(); // Recargamos la tabla
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // ============================================================================
+
+
   // 2. DICCIONARIO DE ESTADOS (UI Dinámica)
   // Devuelve colores y textos amigables según el estado técnico de la BD
   const getStatusBadge = (status: string) => {
@@ -105,14 +189,15 @@ export default function DashboardPage() {
       case 'confirmed':
         return <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmado</span>;
       case 'rejected':
-        return <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Rechazado</span>;
+      case 'cancelled': // Añadimos cancelled al mismo badge rojo
+        return <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">{status === 'rejected' ? 'Rechazado' : 'Cancelado'}</span>;
       default:
         return <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{status}</span>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 relative">
       <div className="max-w-7xl mx-auto">
         
         {/* Encabezado del Panel con Controles de Navegación */}
@@ -205,17 +290,40 @@ export default function DashboardPage() {
                         {getStatusBadge(turno.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {/* Botón dinámico: Solo permite revisar si está en el estado correcto */}
-                        {turno.status === 'under_review' ? (
+                        
+                        {/* LÓGICA DE BOTONES DINÁMICOS SEGÚN EL ESTADO */}
+                        {turno.status === 'under_review' && (
                           <Link 
                             href={`/admin/dashboard/revisar/${turno.id}`}
                             className="text-[var(--color-zoe-blue)] hover:text-blue-800 font-bold"
                           >
                             Revisar Ficha &rarr;
                           </Link>
-                        ) : (
-                          <span className="text-gray-400">Sin acciones</span>
                         )}
+
+                        {(turno.status === 'approved_unpaid' || turno.status === 'confirmed') && (
+                          <div className="flex justify-end gap-3">
+                            <button 
+                              onClick={() => openReprogramModal(turno.id)}
+                              disabled={isActionLoading}
+                              className="text-stone-600 hover:text-stone-900 underline text-xs"
+                            >
+                              Reprogramar
+                            </button>
+                            <button 
+                              onClick={() => handleCancelarTurno(turno.id)}
+                              disabled={isActionLoading}
+                              className="text-red-500 hover:text-red-700 underline text-xs"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
+
+                        {turno.status !== 'under_review' && turno.status !== 'approved_unpaid' && turno.status !== 'confirmed' && (
+                          <span className="text-gray-400">Histórico</span>
+                        )}
+
                       </td>
                     </tr>
                   ))
@@ -226,6 +334,66 @@ export default function DashboardPage() {
         )}
 
       </div>
+
+      {/* =========================================================
+          MODAL DE REPROGRAMACIÓN (Flota por encima del dashboard)
+          ========================================================= */}
+      {isReprogramModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Modificar Turno</h3>
+            <p className="text-sm text-gray-500 mb-6">Selecciona el nuevo horario. Puedes definir una duración personalizada si la complejidad del paciente lo requiere.</p>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Fecha</label>
+                <input 
+                  type="date" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-zoe-blue)]"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Hora</label>
+                <input 
+                  type="time" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-zoe-blue)]"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Duración Personalizada (Minutos) - Opcional</label>
+                <input 
+                  type="number" 
+                  placeholder="Ej: 120"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-zoe-blue)]"
+                  value={newDuration}
+                  onChange={(e) => setNewDuration(e.target.value)}
+                />
+                <span className="text-xs text-gray-400 mt-1 block">Deja en blanco para usar la duración estándar del servicio.</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setIsReprogramModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleReprogramarTurno}
+                disabled={isActionLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-zoe-blue)] hover:bg-blue-800 rounded-lg shadow-sm"
+              >
+                {isActionLoading ? 'Guardando...' : 'Confirmar Cambios'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
