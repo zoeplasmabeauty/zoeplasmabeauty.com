@@ -13,7 +13,7 @@
  * - Actualiza la tabla 'patients' con los nuevos datos personales (domicilio, fecha de nac.).
  * - Inserta un nuevo registro en la tabla 'medical_records' vinculado al turno.
  * - Actualiza el estado del turno en la tabla 'appointments' a 'under_review'.
- * 4. Disparo de Notificaciones: (Preparado para la Fase 3) Avisará al Admin que hay un turno por revisar.
+ * 4. Disparo de Notificaciones: Avisa inmediatamente al Admin por correo que hay un turno por revisar.
  */
 
 import { NextResponse } from 'next/server';
@@ -21,6 +21,9 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../db'; 
 import { appointments, patients, medicalRecords } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
+
+// Importamos la función constructora del correo desde nuestra librería centralizada
+import { getAdminTriageAlertEmail } from '../../../../lib/emailTemplates';
 
 export const runtime = 'edge';
 
@@ -124,8 +127,48 @@ export async function POST(request: Request) {
     // ============================================================================
     // NOTIFICACIÓN AL ADMINISTRADOR (BREVO API)
     // ============================================================================
-    // TODO: En el futuro, aquí inyectaremos la lógica para disparar un correo a 
-    // contacto@zoeplasmabeauty.com diciendo "El turno X está esperando tu revisión".
+    // Dispara un correo a contacto@zoeplasmabeauty.com avisando que hay un triage pendiente
+    try {
+      const cloudflareEnv = env as unknown as Record<string, string>;
+      const brevoApiKey = cloudflareEnv.BREVO_API_KEY || process.env.BREVO_API_KEY;
+      
+      if (brevoApiKey) {
+        // Obtenemos el nombre del paciente para personalizar el asunto del correo
+        const patientData = await db.select({ fullName: patients.fullName }).from(patients).where(eq(patients.id, turnoOriginal.patientId));
+        const patientName = patientData[0]?.fullName || "Un paciente";
+
+        // Determinamos la URL base dinámica para el botón del correo
+        const baseUrl = process.env.NODE_ENV === 'production' ? 'https://zoeplasmabeauty.com' : 'http://localhost:3000';
+
+        // Llamamos a la librería para ensamblar el HTML
+        const emailHtml = getAdminTriageAlertEmail({
+          patientName,
+          appointmentId,
+          baseUrl
+        });
+
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'api-key': brevoApiKey
+          },
+          body: JSON.stringify({
+            sender: { name: "Sistema Zoe Plasma Beauty", email: "no-reply@zoeplasmabeauty.com" },
+            to: [{ email: "contacto@zoeplasmabeauty.com", name: "Administrador Zoe Plasma Beauty" }],
+            subject: `🚨 Triage Pendiente: Revisar ficha de ${patientName}`,
+            htmlContent: emailHtml // Inyectamos el HTML generado por la librería
+          })
+        });
+        console.log(`📨 [API FICHA] Alerta enviada al administrador sobre la ficha de ${patientName}.`);
+      } else {
+        console.warn("⚠️ [API FICHA] BREVO_API_KEY no configurada. No se envió alerta al admin.");
+      }
+    } catch (emailError) {
+      console.error("🔴 [API FICHA] Fallo no crítico enviando alerta al admin:", emailError);
+      // No lanzamos throw aquí para asegurar que el frontend reciba el success: true
+    }
     // ============================================================================
 
     // 5. RESPUESTA AL FRONTEND

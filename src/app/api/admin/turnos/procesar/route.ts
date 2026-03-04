@@ -5,12 +5,17 @@
  * Ejecutar la decisión médica del Administrador (Aprobar o Rechazar).
  * Orquesta la comunicación con servicios de terceros (Mercado Pago y Brevo) 
  * y actualiza el estado inmutable del turno en la base de datos D1.
+ * Se delega la construcción del HTML de los correos a la librería 'emailTemplates' 
+ * para mantener el controlador limpio y focalizado en la lógica transaccional.
+ * Se implementó el motor de cálculo de desgloses para enviar al paciente el detalle
+ * exacto de Seña, Cargos por Servicio y Saldo Restante a pagar en la clínica y que se envia al mail
  * * RESPONSABILIDADES:
  * 1. Seguridad: Verificar la cookie 'zoe_admin_session'.
- * 2. Extracción de Contexto: Buscar datos del paciente y servicio para el recibo/email.
+ * 2. Extracción de Contexto: Buscar datos del paciente y servicio (incluyendo PRECIO).
  * 3. Flujo de Aprobación:
+ * - Calcular matemática financiera (Seña + Impuestos + Saldo).
  * - Conectar con Mercado Pago API para generar el link de cobro.
- * - Conectar con Brevo API para enviar el correo de aprobación con el link.
+ * - Conectar con Brevo API para enviar el correo de aprobación con el link y desglose.
  * - Actualizar estado a 'approved_unpaid'.
  * 4. Flujo de Rechazo:
  * - Conectar con Brevo API para enviar correo de denegación médica.
@@ -23,6 +28,9 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../../db';
 import { appointments, patients, services } from '../../../../../db/schema';
 import { eq } from 'drizzle-orm';
+
+// Importamos las funciones constructoras de correos
+import { getApprovalEmail, getRejectionEmail } from '../../../../../lib/emailTemplates';
 
 export const runtime = 'edge';
 
@@ -63,13 +71,14 @@ export async function POST(request: Request) {
     const brevoApiKey = cloudflareEnv.BREVO_API_KEY || process.env.BREVO_API_KEY;
 
     // 4. EXTRACCIÓN DEL CONTEXTO DEL TURNO
-    // Necesitamos los datos del paciente (email, nombre) y del servicio (nombre)
+    // Agregamos la extracción de 'services.price'
     const turnosEncontrados = await db.select({
       id: appointments.id,
       status: appointments.status,
       patientName: patients.fullName,
       patientEmail: patients.email,
       serviceName: services.name,
+      servicePrice: services.price // Extraemos el valor real del tratamiento
     })
     .from(appointments)
     .innerJoin(patients, eq(appointments.patientId, patients.id))
@@ -94,14 +103,22 @@ export async function POST(request: Request) {
       
       if (!mpAccessToken) throw new Error("Token de Mercado Pago no configurado.");
 
-      // A.1 MOTOR FINANCIERO (Mercado Pago)
-      const COSTO_RESERVA_BASE = 50000;
-      const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
+      // ========================================================================
+      // A.1 MOTOR FINANCIERO (Matemática Estricta)
+      // ========================================================================
+      const PRECIO_TRATAMIENTO = turnoData.servicePrice; // Viene de la base de datos
+      const COSTO_RESERVA_BASE = 50000; // Seña fija
+      const PORCENTAJE_IMPUESTOS_MP = 0.0825; // 8.25%
+      
+      // Cálculos
       const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
-      const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
+      const TOTAL_A_PAGAR_MP = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
+      const SALDO_RESTANTE = PRECIO_TRATAMIENTO - COSTO_RESERVA_BASE; // El cargo de servicio no se descuenta
+      // ========================================================================
 
       const baseUrl = process.env.NODE_ENV === 'production' ? 'https://zoeplasmabeauty.com' : 'http://localhost:3000';
 
+      // A.2 CREACIÓN DEL LINK DE PAGO (Mercado Pago)
       const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
         headers: {
@@ -114,7 +131,7 @@ export async function POST(request: Request) {
             description: `Reserva de tratamiento estético para ${turnoData.patientName}`,
             quantity: 1,
             currency_id: "ARS",
-            unit_price: TOTAL_A_PAGAR 
+            unit_price: TOTAL_A_PAGAR_MP 
           }],
           payer: {
             name: turnoData.patientName,
@@ -139,8 +156,20 @@ export async function POST(request: Request) {
       const checkoutUrl = mpData.init_point;
       console.log("✅ [API PROCESAR] Link de Mercado Pago generado con éxito.");
 
-      // A.2 NOTIFICACIÓN AL PACIENTE (Brevo)
+      // A.3 NOTIFICACIÓN AL PACIENTE (Brevo)
       if (brevoApiKey) {
+        // Inyectamos todas las variables financieras al HTML
+        const emailHtml = getApprovalEmail({
+          patientName: turnoData.patientName,
+          serviceName: turnoData.serviceName,
+          precioTratamiento: PRECIO_TRATAMIENTO.toLocaleString('es-AR'),
+          valorSena: COSTO_RESERVA_BASE.toLocaleString('es-AR'),
+          cobroServicio: CARGOS_SERVICIO.toLocaleString('es-AR'),
+          totalAPagarMP: TOTAL_A_PAGAR_MP.toLocaleString('es-AR'),
+          saldoRestante: SALDO_RESTANTE.toLocaleString('es-AR'),
+          checkoutUrl: checkoutUrl
+        });
+
         await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
           headers: {
@@ -152,24 +181,13 @@ export async function POST(request: Request) {
             sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
             to: [{ email: turnoData.patientEmail, name: turnoData.patientName }],
             subject: "¡Tu tratamiento ha sido aprobado! - Zoe Plasma Beauty",
-            htmlContent: `
-              <div style="font-family: Arial, sans-serif; color: #333; max-w: 600px; margin: 0 auto;">
-                <h2 style="color: #425482;">Hola ${turnoData.patientName},</h2>
-                <p>Nuestro equipo médico ha revisado tu Ficha Clínica y nos alegra confirmarte que <strong>eres apto/a para el tratamiento de ${turnoData.serviceName}</strong>.</p>
-                <p>Para confirmar tu turno de manera oficial y bloquear tu espacio en la agenda, por favor abona la seña de <strong>$${TOTAL_A_PAGAR.toLocaleString('es-AR')} ARS</strong> a través de Mercado Pago.</p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${checkoutUrl}" style="background-color: #568dcd; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Pagar Seña y Confirmar Turno</a>
-                </div>
-                <p style="font-size: 12px; color: #666;">Nota: Si no realizas el pago en las próximas horas, el sistema podría liberar tu espacio automáticamente.</p>
-                <p>¡Te esperamos!</p>
-              </div>
-            `
+            htmlContent: emailHtml // Inyectamos el HTML limpio
           })
         });
         console.log("✅ [API PROCESAR] Correo de aprobación enviado.");
       }
 
-      // A.3 PERSISTENCIA (Actualizar BD a 'approved_unpaid')
+      // A.4 PERSISTENCIA (Actualizar BD a 'approved_unpaid')
       await db.update(appointments)
         .set({ status: 'approved_unpaid' })
         .where(eq(appointments.id, appointmentId));
@@ -188,6 +206,12 @@ export async function POST(request: Request) {
 
       // B.1 NOTIFICACIÓN DE RECHAZO (Brevo)
       if (brevoApiKey) {
+        // Usamos la plantilla centralizada
+        const emailHtml = getRejectionEmail({
+          patientName: turnoData.patientName,
+          serviceName: turnoData.serviceName
+        });
+
         await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
           headers: {
@@ -199,17 +223,7 @@ export async function POST(request: Request) {
             sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
             to: [{ email: turnoData.patientEmail, name: turnoData.patientName }],
             subject: "Aviso importante sobre tu turno - Zoe Plasma Beauty",
-            htmlContent: `
-              <div style="font-family: Arial, sans-serif; color: #333; max-w: 600px; margin: 0 auto;">
-                <h2 style="color: #425482;">Hola ${turnoData.patientName},</h2>
-                <p>Nuestro equipo ha evaluado cuidadosamente tu Ficha Clínica.</p>
-                <p>Priorizando siempre tu salud y seguridad, hemos determinado que en este momento <strong>no es seguro proceder con el tratamiento de ${turnoData.serviceName}</strong> debido a las condiciones de salud o contraindicaciones indicadas en tu formulario.</p>
-                <p>Tu turno ha sido cancelado y no se ha realizado ningún cargo.</p>
-                <p>Si consideras que hubo un error o deseas consultar cuándo podrías ser apto/a, por favor responde a este correo o escríbenos a nuestro WhatsApp oficial.</p>
-                <p>Agradecemos tu comprensión.</p>
-                <p><strong>El equipo de Zoe Plasma Beauty</strong></p>
-              </div>
-            `
+            htmlContent: emailHtml // Inyectamos el HTML limpio
           })
         });
         console.log("🛑 [API PROCESAR] Correo de rechazo enviado.");
