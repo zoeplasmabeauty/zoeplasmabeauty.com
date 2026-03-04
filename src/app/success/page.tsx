@@ -61,7 +61,7 @@ export default function SuccessPage() {
           </p>
           <p className="text-sm text-gray-600 flex items-start">
             <span className="mr-3 text-stone-800 font-bold">2.</span>
-            Nuestro equipo se pondrá en contacto contigo vía WhatsApp a la brevedad para brindarte las indicaciones previas a tu evaluación.
+            Adicionalmente recibirás en tu correo una lista de cuidados previos al tratamiento para optimizar los resultados.
           </p>
         </div>
 

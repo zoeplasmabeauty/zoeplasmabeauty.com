@@ -1,6 +1,3 @@
--- ARCHIVO: seed.sql
--- PROPÓSITO: Reestructurar la base de datos para soportar la Máquina de Estados y Fichas Clínicas.
-
 -- ======================================================================
 -- PASO 1: RECONSTRUCCIÓN ESTRUCTURAL COMPLETA (Tear Down)
 -- Destruimos en orden inverso de dependencias para no violar Foreign Keys.

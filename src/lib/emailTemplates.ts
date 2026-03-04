@@ -168,7 +168,7 @@ export const getApprovalEmail = ({
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Nuestro equipo médico ha revisado tu Ficha Clínica y nos alegra confirmarte que <strong>eres apto/a</strong> para el tratamiento de <strong>${serviceName}</strong>.
+            Nuestro equipo de especialistas ha revisado tu Ficha Clínica y nos alegra confirmarte que <strong>eres apto/a</strong> para el tratamiento de <strong>${serviceName}</strong>.
           </p>
           
           <div style="background-color: #f4f7fb; border-left: 4px solid ${THEME.primaryLight}; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
@@ -185,7 +185,7 @@ export const getApprovalEmail = ({
             </div>
             
             <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px;">
-              <span style="color: ${THEME.textMuted};">Cargos por servicio (Mercado Pago):</span>
+              <span style="color: ${THEME.textMuted};">Cargos por servicio:</span>
               <strong style="color: ${THEME.textDark};">$${cobroServicio}</strong>
             </div>
             
@@ -215,7 +215,7 @@ export const getApprovalEmail = ({
           
           <div style="background-color: #fff9e6; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; margin: 30px 0;">
             <p style="margin: 0; color: #b45309; font-size: 13px; font-weight: 500;">
-              <strong>Aviso importante:</strong> Si no realizas el pago en las próximas horas, el sistema podría liberar tu espacio automáticamente.
+              <strong>Aviso importante:</strong> Si no realizas el pago en las próximas horas, el sistema podría liberar tu espacio y deberas iniciar el proceso nuevamente.
             </p>
           </div>
           

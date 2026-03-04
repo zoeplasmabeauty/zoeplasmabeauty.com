@@ -60,6 +60,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Faltan parámetros críticos (ID o Acción)." }, { status: 400 });
     }
 
+    // ============================================================================
+    // DETECCIÓN DINÁMICA DE ENTORNO (El "Francotirador" de URLs)
+    // Leemos el origen de la petición en lugar de depender de variables de Node
+    // ============================================================================
+    const originHeader = request.headers.get('origin');
+    const hostHeader = request.headers.get('host');
+    const protocol = hostHeader && hostHeader.includes('localhost') ? 'http' : 'https';
+    
+    // Si hay origin (llamada de cliente) lo usamos. Si no, construimos con el host. Fallback a prod.
+    const baseUrl = originHeader || (hostHeader ? `${protocol}://${hostHeader}` : 'https://zoeplasmabeauty.com');
+    console.log(`🌐 [API PROCESAR] Entorno detectado dinámicamente: ${baseUrl}`);
+    // ============================================================================
+
     // 3. CONEXIÓN AL ENTORNO
     const ctx = getRequestContext();
     const env = ctx.env as unknown as Env;
@@ -116,8 +129,6 @@ export async function POST(request: Request) {
       const SALDO_RESTANTE = PRECIO_TRATAMIENTO - COSTO_RESERVA_BASE; // El cargo de servicio no se descuenta
       // ========================================================================
 
-      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://zoeplasmabeauty.com' : 'http://localhost:3000';
-
       // A.2 CREACIÓN DEL LINK DE PAGO (Mercado Pago)
       const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
@@ -138,12 +149,13 @@ export async function POST(request: Request) {
             email: turnoData.patientEmail,
           },
           back_urls: {
-            success: `${baseUrl}/success`, 
+            success: `${baseUrl}/success`, // Redirección dinámica
             failure: `${baseUrl}/`, 
             pending: `${baseUrl}/`
           },
           auto_return: "approved",
-          external_reference: turnoData.id // Puente crítico para el Webhook futuro
+          external_reference: turnoData.id, // Puente crítico para el Webhook
+          notification_url: `${baseUrl}/api/webhooks/mercadopago` // Forzamos el envío del webhook a esta URL exacta
         })
       });
 
