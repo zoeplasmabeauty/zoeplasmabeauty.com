@@ -4,6 +4,7 @@
  * * PROPÓSITO ESTRATÉGICO:
  * Renderizar la Anamnesis (Ficha Clínica) del paciente, consolidando el Paso 2 
  * del embudo de ventas y mitigando riesgos legales/médicos.
+ * Incluye un "Roadmap de Tranquilidad" interactivo al finalizar.
  * * RESPONSABILIDADES:
  * 1. Presentación de Datos Base: Mostrar la información del Paso 1 (Solo lectura).
  * 2. Recolección Estricta: Manejar el estado de decenas de variables médicas.
@@ -12,8 +13,11 @@
 
 'use client';
 
-import { useState } from 'react';
+// Importamos useEffect para manejar el temporizador de redirección
+import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
+// Importamos useRouter para mover al usuario programáticamente
+import { useRouter } from 'next/navigation';
 
 // Definición de las propiedades que nos inyecta el Servidor
 interface InitialData {
@@ -27,10 +31,23 @@ interface InitialData {
 }
 
 export default function TriageForm({ initialData }: { initialData: InitialData }) {
+  // Instanciamos el enrutador de Next.js
+  const router = useRouter();
+
   // 1. FORMATEO DE FECHAS PARA VISUALIZACIÓN
   const rawDate = parseISO(initialData.appointmentDate);
   const displayDate = format(rawDate, 'dd/MM/yyyy');
   const displayTime = format(rawDate, 'HH:mm');
+
+  // ============================================================================
+  // LÍMITES DE CALENDARIO (Validación estricta de 4 dígitos y rango de 100 años)
+  // Calculamos la fecha de hoy y la fecha de hace exactamente 100 años
+  // ============================================================================
+  const today = new Date();
+  const maxDateStr = today.toISOString().split('T')[0]; // Ej: "2026-03-04" (No permite fechas futuras)
+  
+  const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+  const minDateStr = minDate.toISOString().split('T')[0]; // Ej: "1926-03-04" (Límite histórico de 100 años)
 
   // 2. ESTADOS DE TRANSACCIÓN
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +79,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
     drinksAlcohol: 'no',
     // Sección 6: Hormonal
     pregnantNursing: 'no',
-    lastMenstrualCycle: '',
+    lastMenstrualCycle: '', // Guarda un string en formato YYYY-MM-DD
     contraceptive: '',
     // Sección 7: Estética y Riesgos
     recentAestheticTreatments: 'no',
@@ -114,17 +131,86 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
     }
   };
 
-  // 5. PANTALLA DE ÉXITO
+  // EFECTO DE REDIRECCIÓN AUTOMÁTICA (Temporizador de 15 segundos)
+  useEffect(() => {
+    if (submitStatus === 'success') {
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 45000); // 45000 milisegundos = 45 segundos
+
+      // Limpieza de memoria si el usuario hace clic en el botón antes de que acabe el tiempo
+      return () => clearTimeout(timer);
+    }
+  }, [submitStatus, router]);
+
+  // 5. PANTALLA DE ÉXITO (El "Roadmap de Tranquilidad")
   if (submitStatus === 'success') {
     return (
-      <div className="mx-auto max-w-2xl rounded-3xl bg-white p-10 text-center shadow-lg border border-[var(--color-zoe-blue)]/20">
-        <h3 className="mb-4 text-3xl font-light text-stone-800">Ficha <span className="font-semibold text-[var(--color-zoe-blue)]">Completada</span></h3>
-        <p className="text-stone-600 leading-relaxed mb-6">
-          Hemos recibido tu ficha clínica correctamente. Nuestro equipo médico está evaluando tu perfil para garantizar que el tratamiento sea 100% seguro para ti.
-        </p>
-        <div className="p-4 bg-[var(--color-zoe-mint)]/30 rounded-xl text-sm text-[var(--color-zoe-dark)] font-medium">
-          Te enviaremos un correo electrónico a <strong>{initialData.email}</strong> en breve con la aprobación y el enlace de pago de tu seña.
+      <div className="mx-auto max-w-2xl rounded-3xl bg-white p-10 text-center shadow-xl border border-gray-100 relative overflow-hidden">
+        
+        {/* INYECCIÓN DE ESTILOS: Animación pura en CSS para la barra de progreso */}
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes shrinkProgressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+        `}} />
+
+        {/* Barra de progreso superior sutil */}
+        <div 
+          className="absolute top-0 left-0 h-1 bg-[var(--color-zoe-blue)]" 
+          style={{ animation: 'shrinkProgressBar 45s linear forwards' }}
+        ></div>
+
+        {/* Icono de Check Animado (Minimalista) */}
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mb-6">
+          <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+
+        <h3 className="mb-2 text-3xl font-light text-stone-800">Ficha <span className="font-semibold text-[var(--color-zoe-blue)]">Completada</span></h3>
+        <p className="text-stone-500 mb-8 text-sm">Tu solicitud de tratamiento está ahora en manos de nuestro equipo.</p>
+        
+        {/* TIMELINE VISUAL (Roadmap) */}
+        <div className="bg-stone-50 rounded-2xl p-6 text-left mb-8 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">✓</div>
+            <p className="text-sm font-semibold text-stone-700">Paso 1 y 2: Solicitud y Ficha enviadas</p>
+          </div>
+          <div className="flex items-center gap-4 opacity-80">
+            <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-[var(--color-zoe-blue)] text-xs font-bold shadow-inner">⏳</div>
+            <p className="text-sm font-semibold text-stone-700">Revisión médica (En proceso - 6/12hs)</p>
+          </div>
+          <div className="flex items-center gap-4 opacity-50">
+            <div className="h-6 w-6 rounded-full bg-stone-200 flex items-center justify-center text-stone-500 text-xs font-bold">💳</div>
+            <p className="text-sm font-semibold text-stone-700">Confirmación y link de pago (Pendiente)</p>
+          </div>
+        </div>
+
+        <div className="p-4 bg-[var(--color-zoe-mint)]/20 border border-[var(--color-zoe-mint)]/40 rounded-xl text-sm text-[var(--color-zoe-dark)] font-medium mb-8">
+          Te enviaremos un correo a <strong>{initialData.email}</strong> en cuanto el equipo apruebe tu perfil.
+        </div>
+
+        {/* BOTONES DE ACCIÓN DUAL */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <button 
+            onClick={() => router.push('/')}
+            className="w-full sm:w-auto px-8 py-3 bg-stone-900 text-white rounded-xl font-medium hover:bg-stone-800 transition-colors shadow-md"
+          >
+            Volver al Inicio
+          </button>
+          <a 
+            href="https://wa.me/5491133850211" // Enlace genérico de WhatsApp a tu número
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto px-8 py-3 bg-white text-stone-600 border border-stone-200 rounded-xl font-medium hover:bg-stone-50 transition-colors"
+          >
+            Tengo una duda
+          </a>
+        </div>
+        
+        <p className="text-xs text-stone-400 mt-6">Serás redirigido automáticamente en unos segundos...</p>
       </div>
     );
   }
@@ -170,7 +256,16 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2">Fecha de Nacimiento</label>
-              <input type="date" required className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--color-zoe-blue)] bg-gray-50/50" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} />
+              {/* Atributos min y max aplicados aquí */}
+              <input 
+                type="date" 
+                required 
+                min={minDateStr} 
+                max={maxDateStr}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--color-zoe-blue)] bg-gray-50/50" 
+                value={formData.dob} 
+                onChange={e => setFormData({...formData, dob: e.target.value})} 
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2">Usuario de Instagram</label>
@@ -308,10 +403,20 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
                   <option value="si">Sí</option>
                 </select>
               </div>
+              
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">Último ciclo menstrual</label>
-                <input type="text" placeholder="Ej: Regular, Irregular, Menopausia..." className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.lastMenstrualCycle} onChange={e => setFormData({...formData, lastMenstrualCycle: e.target.value})} />
+                <label className="block text-sm font-semibold text-gray-600 mb-2">Fecha del último ciclo menstrual</label>
+                {/* Atributos min y max aplicados aquí también */}
+                <input 
+                  type="date" 
+                  min={minDateStr}
+                  max={maxDateStr}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--color-zoe-blue)] bg-gray-50/50" 
+                  value={formData.lastMenstrualCycle} 
+                  onChange={e => setFormData({...formData, lastMenstrualCycle: e.target.value})} 
+                />
               </div>
+              
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-2">Método anticonceptivo</label>
                 <input type="text" placeholder="Si aplica" className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.contraceptive} onChange={e => setFormData({...formData, contraceptive: e.target.value})} />
