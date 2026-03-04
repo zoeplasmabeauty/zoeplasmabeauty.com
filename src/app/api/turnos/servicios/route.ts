@@ -26,47 +26,29 @@ export const runtime = 'edge';
  * No requiere parámetros de entrada, ya que consulta el estado global del catálogo.
  */
 export async function GET() {
-  console.log("\n==================================================");
-  console.log("🟢 [DEBUG API] 1. INICIANDO PETICIÓN A /api/servicios");
-  console.log("==================================================");
-  
   try {
     // 1. OBTENCIÓN DEL CONTEXTO: 
     // Extraemos el objeto 'env' que contiene el binding 'DB' definido en wrangler.toml.
     const ctx = getRequestContext();
-    console.log("🟢 [DEBUG API] 2. ¿Contexto de Cloudflare existe?:", !!ctx);
-
     const env = ctx?.env as unknown as Env;
-    console.log("🟢 [DEBUG API] 3. ¿Objeto ENV existe?:", !!env);
     
-    // Rastreamos qué variables de entorno está viendo realmente Next.js
-    if (env) {
-      console.log("🟢 [DEBUG API] 4. Llaves detectadas dentro de ENV:", Object.keys(env));
-    } else {
-      console.log("🔴 [DEBUG API] 4. ENV es undefined.");
-    }
-
+    // RED DE SEGURIDAD (Mantenemos el log de error fatal)
     if (!env || !env.DB) {
-      console.error("🔴 [FATAL] 5. env.DB NO EXISTE. El binding de la base de datos está roto.");
+      console.error("🔴 [FATAL] env.DB NO EXISTE. El binding de la base de datos está roto.");
       return new Response(
         JSON.stringify({ 
           error: "DB_BINDING_FAILED", 
-          details: "Next.js no encuentra la variable DB. Revisa los logs de la terminal." 
+          details: "Next.js no encuentra la variable DB. Revisa los logs del servidor." 
         }), 
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log("🟢 [DEBUG API] 5. env.DB encontrado exitosamente. Conectando ORM...");
     const db = createDbConnection(env);
 
-    console.log("🟢 [DEBUG API] 6. Ejecutando query SQL en D1...");
     const activeServices = await db.select()
       .from(services)
       .where(eq(services.isActive, true));
-
-    console.log("🟢 [DEBUG API] 7. Query exitosa. Servicios encontrados:", activeServices.length);
-    console.log("==================================================\n");
     
     return new Response(
       JSON.stringify(activeServices), 
@@ -74,10 +56,10 @@ export async function GET() {
     );
 
   } catch (error: any) {
-    console.error("\n🔴 [FATAL CATCH] 8. La API explotó con este error interno:");
+    // CAPTURA DE CRISIS (Mantenemos el log detallado para debugging en producción)
+    console.error("\n🔴 [FATAL CATCH] La API explotó con este error interno:");
     console.error("Mensaje:", error.message);
     console.error("Stack:", error.stack);
-    console.log("==================================================\n");
     
     return new Response(
       JSON.stringify({ error: "SERVER_ERROR", message: error.message }), 

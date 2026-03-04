@@ -5,13 +5,13 @@
  * * PROPÓSITO:
  * Recibir las peticiones POST desde el formulario del frontend, 
  * validar la información y orquestar la escritura segura en la base de datos D1.
- * Genera un ticket de cobro (Preference) en Mercado Pago.
+ * Actúa como el PASO 1 del embudo médico. Registra el turno en estado 'awaiting_triage'
+ *  y detiene la generación de cobro hasta la aprobación del admin.
  * * * RESPONSABILIDADES:
  * 1. Deserialización: Extraer y tipar el cuerpo de la petición (JSON).
  * 2. Validación: Asegurar que campos críticos como DNI, Teléfono y Email estén presentes.
  * 3. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
- * 4. Pasarela de Pagos: Generar el enlace de pago dinámico de Mercado Pago (Incluyendo recargos e impuestos).
- * 5. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
+ * 4. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
  * * * SEGURIDAD:
  * Utiliza el Edge Runtime de Cloudflare para ejecución cercana al usuario y 
  * validación estricta de tipos para evitar inyecciones o datos corruptos.
@@ -105,131 +105,24 @@ export async function POST(request: Request) {
     .returning({ id: patients.id });
 
     // CREACIÓN DEL TURNO
-    // El turno nace como 'pending'. Solo cambiará a 'confirmed' cuando Mercado Pago avise que se pagó.
+    // El turno nace como 'awaiting_triage' porque falta la ficha médica.
     const [newAppointment] = await db.insert(appointments).values({
       id: appointmentUUID,
       patientId: newPatient.id,
       serviceId,
       appointmentDate,
-      status: "pending", 
+      status: "awaiting_triage", // FIX: Nuevo estado inicial de la Máquina de Estados
     }).returning({ id: appointments.id });
 
-    // ============================================================================
-    // MÁQUINA DE PAGOS (MERCADO PAGO API)
-    // ============================================================================
-    let checkoutUrl = "";
-
-    try {
-      const cloudflareEnv = env as unknown as Record<string, unknown>;
-      const mpAccessToken = (cloudflareEnv.MP_ACCESS_TOKEN as string) || process.env.MP_ACCESS_TOKEN;
-
-      if (!mpAccessToken) {
-        throw new Error("Token de Mercado Pago no configurado.");
-      }
-
-      // Buscamos el nombre real del servicio para que el recibo de Mercado Pago luzca profesional
-      const [servicioDB] = await db.select().from(services).where(eq(services.id, serviceId));
-      const nombreServicio = servicioDB ? servicioDB.name : "Tratamiento Estético";
-
-      // ============================================================================
-      // MOTOR FINANCIERO (Mastering de Precios)
-      // Estas constantes reflejan exactamente las del Frontend para evitar discrepancias.
-      // Calcula la Seña Base + el 8.25% de costos de procesamiento de Mercado Pago.
-      // ============================================================================
-      const COSTO_RESERVA_BASE = 50000;
-      const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
-      const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
-      const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
-
-      // DEFINICIÓN ESTRICTA DE ENTORNO:
-      // Evitamos leer los headers locales de Cloudflare que causan strings rotos.
-      // Si estamos en producción usamos el dominio real, de lo contrario forzamos localhost estricto.
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://zoeplasmabeauty.com' 
-        : 'http://localhost:3000';
-
-      // Petición directa y segura a la API de Preferencias de Mercado Pago
-      const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${mpAccessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              // Modificamos el título para ser claros con el paciente de que el cargo de servicio está incluido
-              title: `Reserva: ${nombreServicio} (Incluye cargos por servicio)`,
-              description: `Turno de evaluación estética para ${fullName}`,
-              quantity: 1,
-              currency_id: "ARS",
-              // INYECCIÓN: Enviamos la variable TOTAL_A_PAGAR en lugar del monto fijo
-              unit_price: TOTAL_A_PAGAR 
-            }
-          ],
-          payer: {
-            name: fullName,
-            email: email,
-          },
-          back_urls: {
-            success: `${baseUrl}/success`, // URL a la que vuelve si paga
-            failure: `${baseUrl}/`, // Si falla, vuelve al inicio
-            pending: `${baseUrl}/`
-          },
-          auto_return: "approved",
-          // EL PUENTE CRÍTICO: Adjuntamos el ID del turno para que Mercado Pago nos lo devuelva en el Webhook
-          external_reference: newAppointment.id 
-        })
-      });
-
-      const mpData = (await mpResponse.json()) as { init_point?: string };
-
-      if (!mpResponse.ok) {
-        console.error("Error de Mercado Pago:", mpData);
-        throw new Error("No se pudo generar el link de pago.");
-      }
-
-      // init_point es el enlace de cobro de Mercado Pago
-      if (!mpData.init_point) {
-        throw new Error("Mercado Pago no devolvió un enlace de cobro válido.");
-      }
-      checkoutUrl = mpData.init_point;
-
-    } catch (mpError) {
-      const msg = mpError instanceof Error ? mpError.message : 'Error desconocido de MP';
-      console.error("🔴 Fallo al generar pago:", msg);
-      // Opcional: Podrías decidir fallar todo el proceso si MP falla, pero por ahora
-      // solo lo capturamos.
-      return NextResponse.json({ error: "No se pudo generar el enlace de pago. Intenta de nuevo." }, { status: 500 });
-    }
-
-    // ============================================================================
-    // FASE MUDADA: AUTOMATIZACIÓN DE CORREO TRANSACCIONAL (BREVO API)
-    // ============================================================================
-    /*
-     * EL CÓDIGO DE BREVO HA SIDO COMENTADO Y DESACTIVADO TEMPORALMENTE AQUÍ.
-     * Motivo Arquitectónico: No queremos enviar el correo confirmando el turno
-     * ANTES de que el paciente pague. Este código exacto se moverá a la nueva ruta
-     * /api/webhooks/mercadopago en la Fase 3.
-     */
-    /*
-    try {
-      const cloudflareEnv = env as unknown as Record<string, unknown>;
-      const brevoApiKey = (cloudflareEnv.BREVO_API_KEY as string) || process.env.BREVO_API_KEY;
-
-      if (brevoApiKey) { ... código de formateo y fetch a brevo ... }
-    } catch (emailError) { ... }
-    */
-    // ============================================================================
-
+    
     // RESPUESTA EXITOSA FINAL AL FRONTEND:
-    // Ahora retornamos la URL de Checkout (checkoutUrl) en lugar de un simple success
+    // No retornamos checkoutUrl. El frontend usará el appointmentId para llevar 
+    // al usuario al formulario de Ficha Clínica.
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Turno pre-registrado. Redirigiendo a pago...",
-        appointmentId: newAppointment.id,
-        checkoutUrl: checkoutUrl // INYECCIÓN: El frontend usará esto para redirigir
+        message: "Paso 1 completado. Redirigiendo a la Ficha Clínica...",
+        appointmentId: newAppointment.id
       }), 
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );

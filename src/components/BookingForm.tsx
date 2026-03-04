@@ -7,9 +7,8 @@
  * 2. Validación de reglas de negocio (Bloqueo de domingos y fechas pasadas, validación de inputs).
  * 3. Comunicación con la API de turnos y la API de Disponibilidad.
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
- * 5. Redirección automática a pasarela de cobro (Mercado Pago).
- * 6. Desglose de costos (Reserva + Impuestos MP).
- * 7. Lógica de selección anidada (Categoría -> Variante) para soportar
+ * 5. Flujo Médico: Redirección automática al Paso 2 (Ficha Clínica).
+ * 6. Lógica de selección anidada (Categoría -> Variante) para soportar
  * múltiples duraciones/precios bajo un mismo "Servicio Visual" sin alterar la estructura plana de D1.
  */
 
@@ -59,8 +58,8 @@ export default function BookingForm() {
 
   // ============================================================================
   // CONSTANTES FINANCIERAS (El Motor de Precios)
-  // Definimos las variables de cobro como constantes fijas para evitar cálculos erróneos
-  // y asegurar la consistencia entre lo que ve el paciente y lo que se cobra en Mercado Pago.
+  // Nota: Estas constantes se mantienen para lógica interna, pero se han 
+  // ocultado de la interfaz visual en favor del aviso de revisión médica.
   // ============================================================================
   const COSTO_RESERVA_BASE = 50000;
   const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
@@ -213,27 +212,26 @@ export default function BookingForm() {
         body: JSON.stringify(payload)
       });
 
-      // Agregamos checkoutUrl a la interfaz esperada
-      const result = (await res.json()) as { error?: string, checkoutUrl?: string };
+      // Esperamos el ID del turno
+      const result = (await res.json()) as { error?: string, appointmentId?: string };
 
       if (!res.ok) {
         throw new Error(result.error || 'Error desconocido en el servidor');
       }
 
       // ========================================================================
-      // REDIRECCIÓN AUTOMÁTICA A LA BÓVEDA DE MERCADO PAGO
+      // REDIRECCIÓN AL PASO 2 (FICHA CLÍNICA)
       // ========================================================================
-      if (result.checkoutUrl) {
-        // Saltamos directamente al cobro
-        window.location.href = result.checkoutUrl;
+      if (result.appointmentId) {
+        // Redirigimos al usuario dinámicamente usando el ID del turno recién creado
+        window.location.href = `/ficha-clinica/${result.appointmentId}`;
+        
         // Dejamos la función aquí. El navegador ya está cargando la nueva URL.
-        // No cambiamos setIsSubmitting a false para que el botón siga diciendo "Confirmando..." 
-        // y el paciente no haga doble clic.
+        // Mantenemos setIsSubmitting(true) para que el botón siga diciendo "Procesando..." 
         return; 
       }
 
-      // FALLBACK DE SEGURIDAD: Si por alguna razón Mercado Pago no devolvió URL, 
-      // actuamos como antes y mostramos el éxito manual.
+      // FALLBACK DE SEGURIDAD
       setSubmitStatus('success');
       // Limpiamos el formulario tras un éxito rotundo
       setFormData({ fullName: '', phone: '', dni: '', email: '' });
@@ -251,12 +249,14 @@ export default function BookingForm() {
   };
 
   // 6. RENDERIZADO CONDICIONAL DE ÉXITO (Fallback)
+  // Nota: Este bloque casi nunca se verá en el nuevo flujo, ya que redirigiremos antes,
+  // pero se mantiene como red de seguridad por si falla la redirección.
   if (submitStatus === 'success') {
     return (
       <div className="p-8 text-center bg-green-50 rounded-xl border border-green-200">
-        <h3 className="text-2xl font-semibold text-green-800 mb-2">¡Turno Solicitado!</h3>
+        <h3 className="text-2xl font-semibold text-green-800 mb-2">¡Paso 1 Completado!</h3>
         <p className="text-green-700">
-          Hemos registrado tu solicitud correctamente. Te hemos enviado un correo con las instrucciones y nos contactaremos por WhatsApp pronto.
+          Por favor, completa tu ficha clínica para continuar con la reserva.
         </p>
         <button 
           onClick={() => setSubmitStatus('idle')}
@@ -461,31 +461,24 @@ export default function BookingForm() {
           </div>
         </div>
 
-        {/* BOTÓN DE ACCIÓN Y DESGLOSE FINANCIERO: Ocupa toda la base de la grilla */}
+        {/* BOTÓN DE ACCIÓN Y AVISO DE REVISIÓN: Ocupa toda la base de la grilla */}
         <div className="lg:col-span-2 pt-6">
 
-          {/* INYECCIÓN: Caja de Desglose de Costos (Solo se muestra si hay una hora seleccionada) */}      
+          {/* ========================================================================
+              BLOQUE INFORMATIVO DE TRIAGE:
+              ======================================================================== */}      
           {selectedTime && (
-            <div className="mb-6 p-5 bg-stone-50 border border-stone-200 rounded-2xl max-w-xl mx-auto">
-              <h4 className="text-sm font-bold text-stone-800 uppercase tracking-wider mb-4 border-b border-stone-200 pb-2">
-                Resumen de Reserva
-              </h4>
-              
-              <div className="flex justify-between items-center mb-2 text-stone-600">
-                <span className="text-sm">Costo de seña</span>
-                <span className="font-medium">${COSTO_RESERVA_BASE.toLocaleString('es-AR')}</span>
-              </div>
-              
-              <div className="flex justify-between items-center mb-4 text-stone-500 text-sm">
-                <span>Cargos por Servicio</span>
-                <span>${CARGOS_SERVICIO.toLocaleString('es-AR')}</span>
-              </div>
-              
-              <div className="flex justify-between items-center pt-3 border-t border-stone-300">
-                <span className="font-bold text-stone-800">Total a Pagar</span>
-                <span className="font-black text-xl text-[var(--color-zoe-blue)]">
-                  ${TOTAL_A_PAGAR.toLocaleString('es-AR')}
-                </span>
+            <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-2xl max-w-xl mx-auto shadow-sm">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 mt-1">
+                  {/* Icono de información sutil */}
+                  <svg className="h-5 w-5 text-[var(--color-zoe-blue)]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-sm leading-relaxed text-blue-900 font-medium">
+                  Al reservar su turno debe completar la <span className="font-bold">ficha estética clínica</span> para su posterior revisión y aprobación. Una vez que sea aprobada, podremos confirmar el turno solicitado.
+                </p>
               </div>
             </div>
           )}
@@ -499,7 +492,8 @@ export default function BookingForm() {
                 : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98] shadow-stone-200'
               }`}
           >
-            {isSubmitting ? 'Conectando con pasarela de pago...' : 'Confirmar y Reservar'}
+            {/* Mensaje de carga acorde al nuevo flujo */}
+            {isSubmitting ? 'Procesando reserva...' : 'Confirmar y Reservar'}
           </button>
         </div>
 

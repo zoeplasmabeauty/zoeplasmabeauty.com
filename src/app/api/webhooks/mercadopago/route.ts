@@ -4,6 +4,7 @@
  * * * PROPÓSITO ESTRATÉGICO:
  * Actuar como el "Receptor de Notificaciones" (Webhook) oficial de Mercado Pago.
  * Recibe señales asíncronas de servidor a servidor cuando ocurre un evento de pago.
+ *  Este webhook representa el PASO 4 (Final) del embudo médico.
  * * * RESPONSABILIDADES:
  * 1. Escucha Activa: Recibir el paquete de datos (JSON) que envía Mercado Pago.
  * 2. Validación Antifraude: Consultar directamente a la API de Mercado Pago usando 
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     const db = createDbConnection(dbEnv);
 
     // 8. ACTUALIZACIÓN DEL REGISTRO (Mastering)
-    // Cambiamos el estado del turno de 'pending' a 'confirmed'
+    // Cambiamos el estado del turno de 'approved_unpaid' a 'confirmed'
     await db.update(appointments)
       .set({ status: 'confirmed' })
       .where(eq(appointments.id, appointmentId));
@@ -123,7 +124,7 @@ export async function POST(request: Request) {
       if (brevoApiKey) {
         // A. EXTRACCIÓN DE DATOS RELACIONALES (JOIN)
         // Necesitamos buscar los datos del paciente y del servicio para armar el correo
-        const [turnoData] = await db.select({
+        const turnosData = await db.select({
           fechaISO: appointments.appointmentDate,
           pacienteNombre: patients.fullName,
           pacienteEmail: patients.email,
@@ -134,6 +135,8 @@ export async function POST(request: Request) {
         .innerJoin(patients, eq(appointments.patientId, patients.id))
         .innerJoin(services, eq(appointments.serviceId, services.id))
         .where(eq(appointments.id, appointmentId));
+        
+        const turnoData = turnosData[0];
 
         if (turnoData) {
           // B. MASTERIZACIÓN DE FECHA

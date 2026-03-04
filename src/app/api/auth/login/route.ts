@@ -4,6 +4,7 @@
  * * PROPÓSITO ESTRATÉGICO:
  * Actuar como el punto de verificación (Endpoint) para el acceso administrativo.
  * Recibe intentos de inicio de sesión, valida credenciales y establece sesiones seguras.
+ * Incluye sondas de debug y correcciones de entorno local para cookies.
  * * RESPONSABILIDADES:
  * 1. Extracción de Datos: Leer la contraseña enviada desde el formulario del frontend.
  * 2. Validación de Entorno: Obtener la contraseña maestra (SECRET) desde las variables de Cloudflare.
@@ -25,6 +26,9 @@ interface LoginRequest {
 }
 
 export async function POST(request: Request) {
+  // SONDA DE DEBUG 1: Confirmamos que la petición llegó al backend
+  console.log("\n🔑 [API LOGIN] 1. Petición de autenticación iniciada");
+
   try {
     // 1. LECTURA DEL INTENTO DE ACCESO
     // Clonamos y extraemos el cuerpo de la petición (JSON) de forma segura
@@ -50,6 +54,9 @@ export async function POST(request: Request) {
     // Extraemos la contraseña maestra que configuraremos en Cloudflare
     const secretPassword = env?.SECRET_ADMIN_PASSWORD || process.env.SECRET_ADMIN_PASSWORD;
 
+    // SONDA DE DEBUG 2: Verificamos si el backend pudo leer el archivo .dev.vars o .env
+    console.log(`🔑 [API LOGIN] 2. ¿Contraseña maestra detectada en el entorno?:`, !!secretPassword);
+
     // GUARDIA DE INFRAESTRUCTURA: Si olvidaste configurar la variable en Cloudflare o en local,
     // el sistema falla de forma segura (cerrado por defecto) en lugar de permitir el paso.
     if (!secretPassword) {
@@ -62,28 +69,36 @@ export async function POST(request: Request) {
 
     // 3. COMPARACIÓN DE CREDENCIALES
     if (password === secretPassword) {
+      // SONDA DE DEBUG 3: Contraseña validada
+      console.log("🔑 [API LOGIN] 3. Contraseña CORRECTA. Generando cookie...");
+
       // ÉXITO: Las contraseñas coinciden. Preparamos una respuesta positiva.
       const response = NextResponse.json(
         { success: true, message: "Acceso autorizado" },
         { status: 200 }
       );
 
+      // Calculamos dinámicamente si estamos en localhost. Wrangler suele forzar NODE_ENV a 'production', 
+      // lo que hace que 'secure: true' destruya las cookies en HTTP.
+      const isLocalhost = request.url.includes('localhost') || request.url.includes('127.0.0.1');
+
       // 4. INYECCIÓN DE LA BÓVEDA (COOKIE HTTP-ONLY)
       // Esta es la "pulsera VIP". Le decimos al navegador que guarde esta cookie.
       response.cookies.set({
-        name: 'admin_session', // Nombre de la cookie que buscaremos luego
+        name: 'zoe_admin_session', // Nombre de la cookie que buscaremos luego en el middleware
         value: 'authenticated', // El valor (podría ser un token complejo, pero aquí basta con una bandera)
         httpOnly: true, // CRÍTICO: Prohíbe que el JavaScript del navegador lea esta cookie (Previene ataques XSS)
-        secure: process.env.NODE_ENV === 'production', // En producción (HTTPS), viaja encriptada obligatoriamente
-        sameSite: 'strict', // Solo se envía si la petición viene de tu propio dominio (Previene ataques CSRF)
+        secure: !isLocalhost, // Solo exige HTTPS (secure: true) si NO estamos en localhost
+        sameSite: 'lax', // Relajado en lugar de 'strict' para evitar bloqueos del navegador en redirecciones inmediatas
         path: '/', // Válida para todas las páginas de tu sitio
         maxAge: 60 * 60 * 8, // La sesión expira automáticamente en 8 horas por seguridad
       });
 
+      console.log("🔑 [API LOGIN] 4. Cookie inyectada en la respuesta. Redireccionando...");
       return response;
     } else {
       // FRACASO: La contraseña no coincide. Devolvemos un error 401 (No Autorizado).
-      // Usamos un mensaje genérico para no dar pistas a posibles atacantes.
+      console.log("🔴 [API LOGIN] 3. Intento fallido: Contraseña INCORRECTA.");
       return NextResponse.json(
         { error: "Contraseña incorrecta." },
         { status: 401 }

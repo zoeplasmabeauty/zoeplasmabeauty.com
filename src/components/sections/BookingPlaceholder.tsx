@@ -67,7 +67,7 @@ export default function BookingPlaceholder() {
                   </div>
                   <div>
                     <h4 className="font-bold text-[var(--color-zoe-dark)]">Ingresa tus datos</h4>
-                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Proporciona tu información básica para crear tu ficha clínica.</p>
+                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Proporciona tu información básica para agendar el turno.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
@@ -84,8 +84,8 @@ export default function BookingPlaceholder() {
                     3
                   </div>
                   <div>
-                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Confirmar mi tratamiento</h4>
-                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Abona la seña y llena la ficha clinica estetica.</p>
+                    <h4 className="font-bold text-[var(--color-zoe-dark)]">Confirma tu tratamiento</h4>
+                    <p className="text-sm font-medium text-[var(--color-zoe-muted)]">Llena la ficha clinica estetica y espera la confirmación del turno.</p>
                   </div>
                 </li>
               </ul>

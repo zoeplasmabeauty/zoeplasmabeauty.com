@@ -12,6 +12,7 @@
  * 3. Validación de Capa de Datos: Impedir mediante restricciones (notNull, unique) que 
  * entren datos corruptos o incompletos al sistema.
  * 4. Gestiona el costo total de los tratamientos vs la seña.
+ * 5. Incorpora la Máquina de Estados de Aprobación y la Ficha Clínica (Triage).
  */
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
@@ -34,6 +35,15 @@ export const patients = sqliteTable("patients", {
   // INYECCIÓN DE INTEGRIDAD: Se define como .notNull() para obligar al registro 
   // de una vía de comunicación digital para el envío de instrucciones post-turno.
   email: text("email").notNull(), 
+
+  // ====================================================================
+  // EXPANSIÓN DE FICHA TÉCNICA (Sección 2)
+  // Datos complementarios que se llenarán en el Paso 2 de la reserva.
+  // ====================================================================
+  dob: text("dob"), // Fecha de nacimiento
+  instagram: text("instagram"),
+  address: text("address"),
+  howFoundUs: text("how_found_us"), // Ej: Google, Instagram, Recomendación
   
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -60,9 +70,9 @@ export const services = sqliteTable("services", {
 });
 
 // -----------------------------------------------------------------------------
-// TABLA 3: TURNOS (Agenda)
+// TABLA 3: TURNOS (Agenda y Máquina de Estados)
 // Responsabilidad: La tabla transaccional crítica. Relaciona a un paciente 
-// con un servicio en una fecha y hora específica.
+// con un servicio en una fecha y hora específica, guiando el flujo de aprobación.
 // -----------------------------------------------------------------------------
 export const appointments = sqliteTable("appointments", {
   id: text("id").primaryKey(),
@@ -79,14 +89,78 @@ export const appointments = sqliteTable("appointments", {
   // Fecha y Hora del turno en formato ISO 8601 de texto (Estándar seguro para SQLite)
   appointmentDate: text("appointment_date").notNull(), 
   
-  // Estado del embudo del turno (Control de flujo operativo)
-  status: text("status", { enum: ["pending", "confirmed", "completed", "cancelled"] })
+  // ====================================================================
+  // MOTOR DE ESTADOS (STATE MACHINE)
+  // Controla en qué punto del embudo de aprobación y pago se encuentra el turno.
+  // ====================================================================
+  status: text("status", { enum: [
+    "awaiting_triage", // 1. El paciente eligió hora pero no ha enviado su ficha clínica.
+    "under_review",    // 2. Ficha recibida. El admin debe evaluar si es apto.
+    "approved_unpaid", // 3. Admin aprobó. Esperando el pago de seña en Mercado Pago.
+    "confirmed",       // 4. Pago recibido. Turno 100% oficial.
+    "rejected",        // 5. Admin rechazó por contraindicaciones médicas.
+    "completed",       // 6. El paciente asistió y se realizó el tratamiento.
+    "cancelled"        // 7. El paciente canceló o el tiempo de pago expiró.
+  ] })
     .notNull()
-    .default("pending"),
+    .default("awaiting_triage"),
   
   // Notas internas clínicas o mensajes dejados por el paciente durante la reserva
   notes: text("notes"),
   
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// -----------------------------------------------------------------------------
+// TABLA 4: FICHAS CLÍNICAS (Triage y Anamnesis)
+// Responsabilidad: Almacenar las respuestas del formulario de salud para proteger 
+// legal y médicamente a la clínica. Se vincula al turno específico.
+// -----------------------------------------------------------------------------
+export const medicalRecords = sqliteTable("medical_records", {
+  id: text("id").primaryKey(),
+  
+  // Vínculo directo con el turno (1 Turno = 1 Ficha para evaluar su estado particular ese día)
+  appointmentId: text("appointment_id")
+    .notNull()
+    .references(() => appointments.id, { onDelete: "cascade" }),
+
+  // SECCIÓN 3: Antecedentes de Salud
+  hasDisease: integer("has_disease", { mode: "boolean" }).notNull(),
+  diseaseDetails: text("disease_details"),
+  recentSurgery: text("recent_surgery"),
+  coagulationDisorder: integer("coagulation_disorder", { mode: "boolean" }).notNull(),
+  takesMedication: integer("takes_medication", { mode: "boolean" }).notNull(),
+  medicationDetails: text("medication_details"),
+  allergies: text("allergies"),
+
+  // SECCIÓN 4: Evaluación Cutánea
+  skinType: text("skin_type", { enum: ["Seca", "Mixta", "Grasa", "Sensible", "Reactiva"] }).notNull(),
+  usesRetinoids: integer("uses_retinoids", { mode: "boolean" }).notNull(),
+  retinoidsDetails: text("retinoids_details"),
+  usesSunscreen: integer("uses_sunscreen", { mode: "boolean" }).notNull(),
+
+  // SECCIÓN 5: Hábitos
+  smokes: integer("smokes", { mode: "boolean" }).notNull(),
+  drinksAlcohol: integer("drinks_alcohol", { mode: "boolean" }).notNull(),
+
+  // SECCIÓN 6: Salud Hormonal
+  pregnantNursing: integer("pregnant_nursing", { mode: "boolean" }).notNull(),
+  lastMenstrualCycle: text("last_menstrual_cycle"),
+  contraceptive: text("contraceptive"),
+
+  // SECCIÓN 7: Antecedentes Estéticos y Contraindicaciones
+  recentAestheticTreatments: integer("recent_aesthetic_treatments", { mode: "boolean" }).notNull(),
+  treatmentDetails: text("treatment_details"),
+  
+  // Guardaremos las contraindicaciones seleccionadas como un string JSON (array). 
+  // Ej: '["Uso de marcapasos", "Diabetes no controlada"]'
+  contraindications: text("contraindications"), 
+  
+  // Firma digital / Checkbox de consentimiento (Protección legal)
+  consentGiven: integer("consent_given", { mode: "boolean" }).notNull(),
+
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

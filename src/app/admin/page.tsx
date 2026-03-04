@@ -8,7 +8,7 @@
  * 1. Captura de Datos: Recibir la contraseña ingresada por el usuario en tiempo real.
  * 2. Orquestación de Red: Enviar la contraseña al backend (/api/auth/login) para validación.
  * 3. Feedback Visual: Mostrar estados de carga y mensajes de error (contraseña incorrecta).
- * 4. Redirección: Enviar al usuario al panel de control si el backend otorga la "pulsera VIP" (Cookie).
+ * 4. Redirección: Enviar al usuario al panel de control (Dashboard) si el backend otorga la "pulsera VIP" (Cookie).
  */
 
 'use client'; // Directiva estricta: Este código maneja interactividad en el navegador.
