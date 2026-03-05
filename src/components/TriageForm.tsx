@@ -497,7 +497,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
               : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98]'
             }`}
         >
-          {isSubmitting ? 'Enviando Ficha Médica...' : 'Firmar y Enviar Ficha'}
+          {isSubmitting ? 'Enviando Ficha Clínica...' : 'Firmar y Enviar Ficha'}
         </button>
 
       </form>

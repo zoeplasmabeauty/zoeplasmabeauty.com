@@ -185,7 +185,7 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
             to: [{ email: turnoData.patientEmail, name: turnoData.patientName }],
-            subject: "Actualización de tu cita - Zoe Plasma Beauty",
+            subject: "Actualización de tu turno - Zoe Plasma Beauty",
             htmlContent: emailHtml 
           })
         });

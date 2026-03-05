@@ -61,7 +61,7 @@ export default function Contact() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-[var(--color-zoe-dark)]">WhatsApp Directo</h3>
-                <p className="mt-1 text-sm font-medium text-[var(--color-zoe-muted)]">Respuestas rápidas para agendar tu cita.</p>
+                <p className="mt-1 text-sm font-medium text-[var(--color-zoe-muted)]">Respuestas rápidas para agendar tu turno.</p>
                 <span className="mt-2 inline-block font-mono text-sm font-bold text-[var(--color-zoe-blue)] group-hover:underline">
                   +54 9 11 3385-0211
                 </span>
@@ -251,7 +251,7 @@ export default function Contact() {
               {/* Textos superpuestos al final del mapa */}
               <div className="absolute bottom-4 flex w-full flex-col items-center px-4">
                 <div className="text-center text-xs font-bold tracking-widest text-[var(--color-zoe-dark)] uppercase drop-shadow-sm">
-                  Atención Exclusiva con Cita Previa
+                  Atención Exclusiva con turno Previa
                 </div>
               </div>
             </div>

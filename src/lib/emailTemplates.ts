@@ -125,7 +125,7 @@ export const getAdminTriageAlertEmail = ({
           <div style="margin: 40px 0;">
             <a href="${baseUrl}/admin/dashboard/revisar/${appointmentId}" 
                style="background-color: ${THEME.primaryLight}; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(86, 141, 205, 0.2);">
-              Revisar Ficha Médica
+              Revisar Ficha Clínica
             </a>
           </div>
           
@@ -246,7 +246,7 @@ export const getRejectionEmail = ({
 }: RejectionEmailProps): string => {
   
   // Preparamos el mensaje para WhatsApp codificando los espacios y caracteres especiales
-  const waMessage = encodeURIComponent(`Hola equipo de Zoe Plasma Beauty. Soy ${patientName}, me comunico porque he recibido un correo sobre mi turno para ${serviceName} y quisiera hacer una consulta.`);
+  const waMessage = encodeURIComponent(`Hola equipo de Zoe Plasma Beauty. Soy ${patientName}, me comunico porque he recibido un correo de cancelación sobre mi turno para ${serviceName} y quisiera hacer una consulta.`);
   const waLink = `https://wa.me/5491133850211?text=${waMessage}`;
 
   return `
@@ -262,7 +262,7 @@ export const getRejectionEmail = ({
           </p>
           
           <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
-            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Motivo de la decisión médica:</p>
+            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Motivo de la decisión clínica:</p>
             <p style="margin: 0; color: #b91c1c; font-size: 15px; line-height: 1.6; font-style: italic;">
               "${rejectionReason}"
             </p>
