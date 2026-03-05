@@ -12,6 +12,8 @@
  * Cancelaciones manuales con notas personalizadas.
  * La plantilla de Rechazo de Triage (getRejectionEmail) incluye
  * el motivo médico redactado por el administrador y un botón de contacto directo a WhatsApp.
+ * Contien el Dossier de Cuidados Previos (Fibroblast) directamente dentro de la
+ * plantilla de Confirmación de Turno.
  */
 
 // ============================================================================
@@ -45,7 +47,7 @@ const FOOTER_HTML = `
 `;
 
 // ============================================================================
-// 1. PLANTILLA: CONFIRMACIÓN DE TURNO PAGADO (Fase 4 - Webhook)
+// 1. PLANTILLA: CONFIRMACIÓN DE TURNO PAGADO Y CUIDADOS PREVIOS (Fase 4 - Webhook)
 // ============================================================================
 interface BookingEmailProps {
   fullName: string;
@@ -61,14 +63,14 @@ export const getBookingConfirmationEmail = ({
   phone
 }: BookingEmailProps): string => {
   return `
-    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark};">
-      <div style="max-width: 550px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark}; line-height: 1.6;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
         
         ${HEADER_HTML}
         
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">¡Hola, <strong>${fullName}</strong>!</h2>
-          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
+          <p style="color: ${THEME.textMuted}; font-size: 15px;">
             Tu pago ha sido procesado y tu turno ha sido <strong>confirmado exitosamente</strong>.
           </p>
           
@@ -79,8 +81,65 @@ export const getBookingConfirmationEmail = ({
             <p style="margin: 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark}; text-transform: capitalize;">${fechaFormateada}</p>
           </div>
           
-          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Nos pondremos en contacto contigo vía WhatsApp al número <strong>${phone}</strong> si necesitamos enviarte indicaciones previas a tu tratamiento.
+          <div style="margin-top: 40px; padding-top: 30px; border-top: 2px dashed ${THEME.border};">
+            <h3 style="color: ${THEME.primary}; font-size: 18px; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">📋 Cuidados Previos Obligatorios</h3>
+            <p style="font-size: 14px; color: ${THEME.textMuted}; margin-bottom: 25px;">
+              Para garantizar tu seguridad y obtener los mejores resultados con el tratamiento, es <strong>fundamental</strong> que sigas estas indicaciones al pie de la letra antes del procedimiento:
+            </p>
+
+            <h4 style="font-size: 15px; color: ${THEME.textDark}; margin-bottom: 10px;">✅ 7–10 días antes:</h4>
+            <ul style="font-size: 14px; color: ${THEME.textMuted}; margin-top: 0; padding-left: 20px; margin-bottom: 20px;">
+              <li>Evitar exposición solar directa y bronceado.</li>
+              <li>No utilizar camas solares.</li>
+              <li>Suspender el uso de productos sensibilizantes: <strong>Retinoides</strong> y <strong>Ácidos</strong> (glicólico, salicílico, mandélico, retinol, etc.).</li>
+              <li>Suspender exfoliantes físicos o químicos.</li>
+              <li>No realizar peelings ni tratamientos agresivos en la zona.</li>
+            </ul>
+
+            <h4 style="font-size: 15px; color: ${THEME.textDark}; margin-bottom: 10px;">✅ 72 horas antes:</h4>
+            <ul style="font-size: 14px; color: ${THEME.textMuted}; margin-top: 0; padding-left: 20px; margin-bottom: 20px;">
+              <li>Evitar consumo excesivo de alcohol.</li>
+              <li>No depilar, rasurar ni irritar la zona a tratar.</li>
+              <li>Mantener la piel hidratada.</li>
+            </ul>
+
+            <h4 style="font-size: 15px; color: ${THEME.textDark}; margin-bottom: 10px;">✅ 24 horas antes:</h4>
+            <ul style="font-size: 14px; color: ${THEME.textMuted}; margin-top: 0; padding-left: 20px; margin-bottom: 20px;">
+              <li>No aplicar cremas irritantes ni activos fuertes.</li>
+              <li>Evitar maquillaje intenso en la zona.</li>
+              <li>Dormir bien y mantenerse hidratada/o.</li>
+            </ul>
+
+            <h4 style="font-size: 15px; color: ${THEME.textDark}; margin-bottom: 10px;">✅ El día del tratamiento:</h4>
+            <ul style="font-size: 14px; color: ${THEME.textMuted}; margin-top: 0; padding-left: 20px; margin-bottom: 25px;">
+              <li>Asistir con la piel limpia y sin maquillaje.</li>
+              <li><strong>No aplicar cremas, aceites ni protector solar</strong> en la zona a tratar.</li>
+              <li>Traer gorra o lentes de sol si el tratamiento es facial.</li>
+              <li>Informar inmediatamente cualquier cambio en tu estado de salud.</li>
+            </ul>
+
+            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px;">
+              <h4 style="color: #b91c1c; font-size: 14px; margin-top: 0; margin-bottom: 10px; text-transform: uppercase;">⚠️ Importante: Motivos de Reprogramación</h4>
+              <p style="font-size: 13px; color: #991b1b; margin-top: 0; margin-bottom: 10px;">Por estrictos protocolos médicos, el tratamiento deberá reprogramarse obligatoriamente si el día del turno presentas:</p>
+              <ul style="font-size: 13px; color: #991b1b; margin: 0; padding-left: 20px;">
+                <li>Herpes activo.</li>
+                <li>Fiebre o cuadro viral.</li>
+                <li>Irritación o lesión en la piel a tratar.</li>
+                <li>Embarazo confirmado.</li>
+                <li>Piel recientemente bronceada.</li>
+              </ul>
+            </div>
+
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; text-align: center;">
+              <p style="color: #15803d; font-size: 13px; margin: 0;">
+                <strong>💡 Recomendación profesional:</strong><br>
+                Te sugerimos traer los productos de cuidado facial que usas habitualmente para evaluar si son aptos para su uso posterior al tratamiento.
+              </p>
+            </div>
+            
+          </div>
+          <p style="color: ${THEME.textMuted}; font-size: 14px; margin-top: 30px; text-align: center; font-style: italic;">
+            Seguir estas indicaciones permite una mejor recuperación y optimiza los resultados. Si tienes alguna duda, consúltanos vía WhatsApp al <strong>${phone}</strong>.
           </p>
           
           ${FOOTER_HTML}
