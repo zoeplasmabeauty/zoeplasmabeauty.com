@@ -12,7 +12,7 @@
  * Cancelaciones manuales con notas personalizadas.
  * La plantilla de Rechazo de Triage (getRejectionEmail) incluye
  * el motivo médico redactado por el administrador y un botón de contacto directo a WhatsApp.
- * Contien el Dossier de Cuidados Previos (Fibroblast) directamente dentro de la
+ * Contiene el Dossier de Cuidados Previos (Fibroblast) directamente dentro de la
  * plantilla de Confirmación de Turno.
  */
 
@@ -429,6 +429,72 @@ export const getReprogrammingEmail = ({
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
             Por favor, toma nota de este cambio. El resto de las condiciones y detalles de tu reserva se mantienen sin alteraciones.
           </p>
+          
+          ${FOOTER_HTML}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ============================================================================
+// 7. PLANTILLA: RECORDATORIO DE TURNO MISMO DÍA (Automatización Cron)
+// ============================================================================
+interface ReminderEmailProps {
+  patientName: string;
+  serviceName: string;
+  timeFormatted: string; // Solo la hora, ya que se envía el mismo día
+  saldoRestante: string;
+  mapsLink: string;
+}
+
+export const getReminderEmail = ({
+  patientName,
+  serviceName,
+  timeFormatted,
+  saldoRestante,
+  mapsLink
+}: ReminderEmailProps): string => {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark}; line-height: 1.6;">
+      <div style="max-width: 550px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
+        
+        ${HEADER_HTML}
+        
+        <div style="padding: 40px 30px;">
+          <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">¡Llegó el día, <strong>${patientName}</strong>!</h2>
+          <p style="color: ${THEME.textMuted}; font-size: 15px;">
+            Te escribimos para recordarte que <strong>hoy tienes tu turno reservado</strong> con nosotros. ¡Estamos muy contentos de recibirte!
+          </p>
+          
+          <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Tratamiento de hoy</p>
+            <p style="margin: 0 0 15px 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">${serviceName}</p>
+            
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Horario</p>
+            <p style="margin: 0 0 15px 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">${timeFormatted}</p>
+
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Saldo restante a abonar en clínica</p>
+            <p style="margin: 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">$${saldoRestante}</p>
+          </div>
+          
+          <h3 style="color: ${THEME.primary}; font-size: 16px; margin-top: 30px; margin-bottom: 10px;">📍 ¿Cómo llegar?</h3>
+          <p style="color: ${THEME.textMuted}; font-size: 14px; margin-bottom: 20px;">
+            Te esperamos en <strong>Baigorria 5307, C1408 Cdad. Autónoma de Buenos Aires, Argentina</strong>. Por favor, intenta llegar con 5 a 10 minutos de anticipación.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${mapsLink}" 
+               style="background-color: ${THEME.primaryLight}; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px rgba(86, 141, 205, 0.2);">
+              Ver ubicación en Google Maps
+            </a>
+          </div>
+
+          <div style="background-color: #fff9e6; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; margin: 30px 0;">
+            <p style="margin: 0; color: #b45309; font-size: 13px; font-weight: 500;">
+              <strong>Recordatorio rápido:</strong> Recuerda asistir con la piel limpia, sin maquillaje, y cumplir con los cuidados previos que te indicamos al confirmar el turno.
+            </p>
+          </div>
           
           ${FOOTER_HTML}
         </div>
