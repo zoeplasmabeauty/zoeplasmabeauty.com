@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS medical_records;
 DROP TABLE IF EXISTS appointments;
 DROP TABLE IF EXISTS services;
 DROP TABLE IF EXISTS patients;
+DROP TABLE IF EXISTS blocked_dates;
 
 -- ======================================================================
 -- PASO 2: CREACIÓN DE TABLAS (Stand Up)
@@ -41,6 +42,14 @@ CREATE TABLE appointments (
   status TEXT NOT NULL DEFAULT 'awaiting_triage',
   notes TEXT,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE TABLE blocked_dates (
+	id text PRIMARY KEY NOT NULL,
+	start_date text NOT NULL,
+	end_date text NOT NULL,
+	reason text,
+	created_at integer DEFAULT (unixepoch()) NOT NULL
 );
 
 -- Tabla de Fichas Clínicas

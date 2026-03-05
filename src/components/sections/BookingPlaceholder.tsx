@@ -2,7 +2,7 @@
  * ARCHIVO: src/components/sections/BookingPlaceholder.tsx
  * COMPONENTE: BookingPlaceholder.tsx
  * * ARQUITECTURA: Sección de Landing Page / Puente de Conversión (Fase 1 y Fase 2)
- * * PROPÓSITO ESTRATÉGICO ACTUALIZADO: 
+ * * PROPÓSITO ESTRATÉGICO: 
  * Capturar la intención de compra generada en las secciones anteriores.  
  * Es el contenedor oficial del motor de reservas interactivo (BookingForm),
  * conectando directamente al paciente con la base de datos D1.

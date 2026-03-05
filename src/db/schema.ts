@@ -14,6 +14,7 @@
  * entren datos corruptos o incompletos al sistema.
  * 4. Gestiona el costo total de los tratamientos vs la seña.
  * 5. Incorpora la Máquina de Estados de Aprobación y la Ficha Clínica (Triage).
+ * 6. Gestiona los bloqueos temporales de agenda (Vacaciones/Cierres).
  */
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
@@ -169,6 +170,28 @@ export const medicalRecords = sqliteTable("medical_records", {
   // Firma digital / Checkbox de consentimiento (Protección legal)
   consentGiven: integer("consent_given", { mode: "boolean" }).notNull(),
 
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// -----------------------------------------------------------------------------
+// TABLA 5: FECHAS BLOQUEADAS (Vacaciones / Cierres)
+// Responsabilidad: Almacenar rangos de fechas donde la clínica no atenderá.
+// El motor de disponibilidad leerá esta tabla para anular el calendario en el frontend.
+// -----------------------------------------------------------------------------
+export const blockedDates = sqliteTable("blocked_dates", {
+  id: text("id").primaryKey(),
+  
+  // Fecha de inicio del bloqueo (Formato estricto YYYY-MM-DD)
+  startDate: text("start_date").notNull(),
+  
+  // Fecha de fin del bloqueo (Formato estricto YYYY-MM-DD)
+  endDate: text("end_date").notNull(),
+  
+  // Motivo del cierre (Ej: "Vacaciones de Verano", "Refacciones"). Útil para gestión interna.
+  reason: text("reason"),
+  
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

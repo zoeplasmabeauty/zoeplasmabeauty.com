@@ -14,6 +14,7 @@
  * 2. Renderizado Seguro: Mostrar la información sensible de los pacientes.
  * 3. Formateo: Convertir las fechas ISO de la base de datos a formato horario local.
  * 4. Gestión de Acciones: Permitir la revisión de turnos, cancelaciones motivadas y reprogramaciones.
+ * 5. Gestión de Agenda: Controlar los cierres globales (Vacaciones/Feriados).
  */
 
 'use client';
@@ -35,6 +36,14 @@ interface Turno {
   service_name: string; // Traemos el nombre real del servicio, no solo el ID
 }
 
+// Interfaz para tipar los bloqueos de agenda
+interface Bloqueo {
+  id: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+}
+
 export default function DashboardPage() {
   // Estados para controlar los datos, la carga y los errores
   const [turnos, setTurnos] = useState<Turno[]>([]);
@@ -52,6 +61,15 @@ export default function DashboardPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   
+  // ============================================================================
+  // ESTADOS PARA LA GESTIÓN DE BLOQUEOS (VACACIONES)
+  // ============================================================================
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const [blockStartDate, setBlockStartDate] = useState('');
+  const [blockEndDate, setBlockEndDate] = useState('');
+  const [blockReason, setBlockReason] = useState('');
+
   const [isActionLoading, setIsActionLoading] = useState(false); // Para spinners en botones
 
   // Instanciamos el enrutador para empujar al usuario tras cerrar sesión o al ver detalles
@@ -61,7 +79,7 @@ export default function DashboardPage() {
   const fetchTurnos = async () => {
     setIsLoading(true);
     try {
-      // Llamaremos a una API protegida que construiremos en el siguiente paso
+      // Llamaremos a una API protegida
       const res = await fetch('/api/admin/turnos');
       if (!res.ok) throw new Error('Error al cargar la base de datos.');
       
@@ -75,8 +93,22 @@ export default function DashboardPage() {
     }
   };
 
+  // Función para obtener la lista de bloqueos activos
+  const fetchBloqueos = async () => {
+    try {
+      const res = await fetch('/api/admin/bloqueos');
+      if (res.ok) {
+        const data = (await res.json()) as Bloqueo[];
+        setBloqueos(data);
+      }
+    } catch (err) {
+      console.error("Error obteniendo bloqueos:", err);
+    }
+  };
+
   useEffect(() => {
     fetchTurnos();
+    fetchBloqueos(); // Cargamos los bloqueos en segundo plano al iniciar
   }, []);
 
   // Función de apoyo para formatear la fecha estilo Buenos Aires
@@ -89,6 +121,13 @@ export default function DashboardPage() {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  };
+
+  // Formateador simple para fechas YYYY-MM-DD
+  const formatoCorto = (fechaYYYYMMDD: string) => {
+    // Forzamos la interpretación local para evitar desfases UTC en el display
+    const date = new Date(`${fechaYYYYMMDD}T12:00:00`); 
+    return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
   };
 
   // 1. MANEJADOR DE APAGADO (LOGOUT)
@@ -195,6 +234,58 @@ export default function DashboardPage() {
   };
 
   // ============================================================================
+  // FUNCIONES DE BLOQUEOS (Cerrar Agenda)
+  // ============================================================================
+  const handleCrearBloqueo = async () => {
+    if (!blockStartDate || !blockEndDate) {
+      alert("Debes seleccionar una fecha de inicio y fin.");
+      return;
+    }
+    if (blockStartDate > blockEndDate) {
+      alert("La fecha de inicio no puede ser posterior a la fecha de fin.");
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/bloqueos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          startDate: blockStartDate, 
+          endDate: blockEndDate, 
+          reason: blockReason.trim() || "Cierre programado" 
+        })
+      });
+
+      if (!res.ok) throw new Error("Fallo al crear el bloqueo.");
+      
+      setBlockStartDate('');
+      setBlockEndDate('');
+      setBlockReason('');
+      fetchBloqueos(); // Recargamos la lista interna
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleEliminarBloqueo = async (id: string) => {
+    if (!confirm("¿Seguro que deseas eliminar este bloqueo y abrir la agenda en estas fechas?")) return;
+    
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/bloqueos?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Fallo al eliminar el bloqueo.");
+      fetchBloqueos();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+  // ============================================================================
 
 
   // 2. DICCIONARIO DE ESTADOS (UI Dinámica)
@@ -217,12 +308,22 @@ export default function DashboardPage() {
     }
   };
 
+  // ============================================================================
+  // LIMITADOR DE FECHAS (UX Defensiva)
+  // Calculamos la fecha de hoy y el 31 de diciembre del año próximo
+  // ============================================================================
+  const today = new Date();
+  const currentYearStr = today.getFullYear();
+  // Formato YYYY-MM-DD necesario para el input type="date"
+  const minDateStr = today.toISOString().split('T')[0]; 
+  const maxDateStr = `${currentYearStr + 1}-12-31`;
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12 relative">
       <div className="max-w-7xl mx-auto">
         
         {/* Encabezado del Panel con Controles de Navegación */}
-        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-light text-gray-900">
               Panel de <span className="font-semibold text-stone-700">Control</span>
@@ -233,7 +334,16 @@ export default function DashboardPage() {
           </div>
           
           {/* Grupo de Botones de Acción */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* NUEVO BOTÓN: Gestión de Agenda/Vacaciones */}
+            <button 
+              onClick={() => setIsBlockModalOpen(true)}
+              className="px-4 py-2 text-sm font-bold text-orange-700 bg-orange-100 border border-orange-200 rounded-lg hover:bg-orange-200 transition-colors shadow-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              Bloquear Fechas
+            </button>
+            <div className="h-6 w-px bg-gray-300 hidden sm:block mx-1"></div> {/* Divisor visual */}
             <button 
               onClick={fetchTurnos}
               className="px-4 py-2 text-sm font-semibold text-stone-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
@@ -358,6 +468,104 @@ export default function DashboardPage() {
       </div>
 
       {/* =========================================================
+          MODAL DE GESTIÓN DE BLOQUEOS (VACACIONES)
+          ========================================================= */}
+      {isBlockModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 relative my-8">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Gestión de Agenda y Cierres</h3>
+                <p className="text-sm text-gray-500 mt-1">Bloquea fechas para evitar que los pacientes agenden turnos (Vacaciones, Feriados, etc).</p>
+              </div>
+              <button onClick={() => setIsBlockModalOpen(false)} className="text-gray-400 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            
+            {/* Formulario para Nuevo Bloqueo */}
+            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-8">
+              <h4 className="font-semibold text-orange-800 mb-4 text-sm uppercase tracking-wide">Crear Nuevo Bloqueo</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+                  {/* INYECCIÓN DEL LÍMITE MÁXIMO AQUÍ */}
+                  <input 
+                    type="date" 
+                    min={minDateStr}
+                    max={maxDateStr}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 bg-white"
+                    value={blockStartDate}
+                    onChange={(e) => setBlockStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha de Fin</label>
+                  <input 
+                    type="date" 
+                    min={blockStartDate || minDateStr}
+                    max={maxDateStr}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 bg-white"
+                    value={blockEndDate}
+                    onChange={(e) => setBlockEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Motivo (Visible para el paciente)</label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: Clínica cerrada por vacaciones de verano"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 bg-white"
+                  value={blockReason}
+                  onChange={(e) => setBlockReason(e.target.value)}
+                  maxLength={60}
+                />
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button 
+                  onClick={handleCrearBloqueo}
+                  disabled={isActionLoading || !blockStartDate || !blockEndDate}
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  {isActionLoading ? 'Guardando...' : 'Aplicar Bloqueo'}
+                </button>
+              </div>
+            </div>
+
+            {/* Lista de Bloqueos Activos */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">Bloqueos Activos</h4>
+              {bloqueos.length === 0 ? (
+                <p className="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg border border-gray-100 text-center">No hay bloqueos registrados en la agenda.</p>
+              ) : (
+                <ul className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {bloqueos.map((bloqueo) => (
+                    <li key={bloqueo.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-orange-200 transition-colors">
+                      <div>
+                        <p className="text-sm font-bold text-gray-800">
+                          {formatoCorto(bloqueo.startDate)} <span className="text-gray-400 font-normal mx-1">hasta</span> {formatoCorto(bloqueo.endDate)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">{bloqueo.reason}</p>
+                      </div>
+                      <button 
+                        onClick={() => handleEliminarBloqueo(bloqueo.id)}
+                        disabled={isActionLoading}
+                        className="mt-3 sm:mt-0 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-md border border-red-100 transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================
           MODAL DE CANCELACIÓN (Flota por encima del dashboard)
           ========================================================= */}
       {isCancelModalOpen && (
@@ -407,8 +615,11 @@ export default function DashboardPage() {
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Fecha</label>
+                {/* LÍMITES INYECTADOS: min (hoy) y max (fin del próximo año) */}
                 <input 
                   type="date" 
+                  min={minDateStr}
+                  max={maxDateStr}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--color-zoe-blue)]"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}

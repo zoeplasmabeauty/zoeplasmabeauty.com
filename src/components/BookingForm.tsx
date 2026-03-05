@@ -8,8 +8,9 @@
  * 3. Comunicación con la API de turnos y la API de Disponibilidad.
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
  * 5. Flujo Médico: Redirección automática al Paso 2 (Ficha Clínica).
- * 6. Lógica de selección anidada (Categoría -> Variante) para soportar
- * múltiples duraciones/precios bajo un mismo "Servicio Visual" sin alterar la estructura plana de D1.
+ * 6. Lógica de selección anidada (Categoría -> Variante).
+ * 7. Gestión de Bloqueos (Vacaciones): Intercepta el estado "vacations" de la API
+ * para mostrar un aviso visual e impedir que se elija una hora.
  */
 
 'use client'; // Directiva estricta: Este código corre en el navegador del paciente.
@@ -26,14 +27,22 @@ interface Service {
   durationMinutes: number; // Usamos durationMinutes 
 }
 
+// Interfaz para tipar estrictamente la respuesta mejorada de nuestra API
+interface AvailabilityResponse {
+  availableSlots: string[];
+  status: "open" | "vacations";
+  message?: string;
+}
+
 export default function BookingForm() {
   // 1. ESTADOS DE LA INTERFAZ (UI STATE)
   const [services, setServices] = useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   
-  // Estados para manejar la cuadrícula de horarios dinámicos
+  // Estados para manejar la cuadrícula de horarios dinámicos y bloqueos
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [vacationMessage, setVacationMessage] = useState(''); // Guarda el motivo del bloqueo
   
   // ----------------------------------------------------------------------
   // ESTADOS DEL FORMULARIO (UX Categorizada)
@@ -131,11 +140,13 @@ export default function BookingForm() {
         if (!selectedDate || !selectedServiceId) {
         setAvailableSlots([]);
         setSelectedTime(''); // Reseteamos la hora si cambia el día
+        setVacationMessage(''); // Limpiamos mensaje de vacaciones previo
         return;
       }
 
       setIsLoadingSlots(true);
       setSelectedTime(''); // Limpiamos selección previa por seguridad
+      setVacationMessage('');
       
       try {
         // Formateamos la fecha para que la API la entienda (YYYY-MM-DD)
@@ -144,9 +155,16 @@ export default function BookingForm() {
         
         if (!res.ok) throw new Error('Fallo al cargar disponibilidad');
         
-        // TypeScript estricto para la respuesta de nuestra nueva API
-        const data = (await res.json()) as { availableSlots: string[] };
-        setAvailableSlots(data.availableSlots || []);
+        // Extraemos la respuesta con la nueva interfaz que contempla vacaciones
+        const data = (await res.json()) as AvailabilityResponse;
+        
+        // Verificamos si la API nos mandó la bandera de bloqueo
+        if (data.status === "vacations") {
+          setAvailableSlots([]);
+          setVacationMessage(data.message || "La clínica se encuentra cerrada en esta fecha.");
+        } else {
+          setAvailableSlots(data.availableSlots || []);
+        }
       } catch (error) {
         console.error("Error consultando horarios:", error);
         setAvailableSlots([]);
@@ -356,6 +374,7 @@ export default function BookingForm() {
                 setSelectedCategory(e.target.value);
                 setSelectedServiceId(''); // Reseteamos la variante si cambia la categoría principal
                 setAvailableSlots([]);
+                setVacationMessage('');
               }}
               disabled={isLoadingServices}
             >
@@ -421,7 +440,7 @@ export default function BookingForm() {
             </div>
             
             {/* ====================================================================
-            // SECCIÓN VISUAL DE HORARIOS (Aparece tras elegir día y tratamiento)
+            // SECCIÓN VISUAL DE HORARIOS Y BLOQUEOS
             {/* ==================================================================== */}
             {selectedDate && selectedServiceId && (
               <div className="mt-8">
@@ -432,6 +451,14 @@ export default function BookingForm() {
                 {isLoadingSlots ? (
                   <div className="text-center py-4 text-sm text-stone-500 animate-pulse font-medium">
                     Calculando espacios disponibles...
+                  </div>
+                ) : vacationMessage ? (
+                  // RENDEREADO CONDICIONAL PARA BLOQUEOS DE FECHA (Vacaciones)
+                  <div className="text-center py-4 px-3 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm font-medium">
+                    <svg className="w-6 h-6 mx-auto mb-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {vacationMessage}
                   </div>
                 ) : availableSlots.length > 0 ? (
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -485,7 +512,7 @@ export default function BookingForm() {
 
           <button 
             type="submit" 
-            disabled={isSubmitting || !selectedTime} // Desactivado si falta la hora
+            disabled={isSubmitting || !selectedTime} // Desactivado si falta la hora (o si hay bloqueo)
             className={`w-full max-w-xl mx-auto block py-4 px-6 rounded-2xl font-bold text-lg text-white transition-all shadow-md
               ${(isSubmitting || !selectedTime)
                 ? 'bg-gray-400 cursor-not-allowed' 

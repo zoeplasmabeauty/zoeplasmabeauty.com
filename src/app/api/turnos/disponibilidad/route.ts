@@ -10,19 +10,19 @@
  * para respetar las reprogramaciones de tiempo personalizadas del Administrador.
  * * RESPONSABILIDADES:
  * 1. Reglas de Negocio: Aplica horarios de L a V (10 a 18hs) y Sábados (12 a 18hs).
- * 2. Extracción: Obtiene los turnos de ese día y sus duraciones desde la BD.
- * 3. Cálculo de Solapamiento: Elimina las horas donde un turno nuevo chocaría con uno viejo.
- * 4. Control de Cierre: Evita que se agende un turno de 60 mins a las 17:30 (cierra a las 18:00).
+ * 2. Bloqueos Globales: Deniega el acceso si la fecha está en 'blockedDates'.
+ * 3. Extracción: Obtiene los turnos de ese día y sus duraciones desde la BD.
+ * 4. Cálculo de Solapamiento: Elimina las horas donde un turno nuevo chocaría con uno viejo.
+ * 5. Control de Cierre: Evita que se agende un turno de 60 mins a las 17:30 (cierra a las 18:00).
  */
 
 import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../db'; 
-import { appointments, services } from '../../../../db/schema';
-// Importamos 'inArray' para poder filtrar múltiples estados a la vez
-import { eq, and, gte, lt, inArray } from 'drizzle-orm';
+import { appointments, services, blockedDates } from '../../../../db/schema'; // Importamos la nueva tabla
+// Importamos 'inArray' y 'lte', 'gte' para las fechas
+import { eq, and, gte, lt, lte, inArray } from 'drizzle-orm';
 // Usamos date-fns para manejar la matemática de tiempo de forma segura y precisa
-// Limpiamos importaciones que causaban desfase UTC (setHours, setMinutes, toZonedTime)
 import { addMinutes, parseISO, isBefore, isAfter } from 'date-fns';
 
 export const runtime = 'edge';
@@ -55,6 +55,29 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Servicio no encontrado." }, { status: 404 });
     }
     const duracionTratamiento = selectedService.durationMinutes;
+
+    // ============================================================================
+    // 3.5 RADAR DE BLOQUEOS GLOBALES (Vacaciones / Cierres)
+    // Buscamos si la fecha solicitada (dateParam) cae dentro de algún rango bloqueado.
+    // Lógica: startDate <= dateParam Y endDate >= dateParam
+    // ============================================================================
+    const bloqueosActivos = await db.select().from(blockedDates).where(
+      and(
+        lte(blockedDates.startDate, dateParam), // La fecha solicitada es mayor o igual al inicio del bloqueo
+        gte(blockedDates.endDate, dateParam)    // La fecha solicitada es menor o igual al fin del bloqueo
+      )
+    );
+
+    // Si encontramos al menos un registro que cubra esta fecha, cerramos las puertas.
+    if (bloqueosActivos.length > 0) {
+      // Devolvemos un código HTTP 200 (la petición fue exitosa), pero con una 
+      // bandera de estado especial para que el frontend muestre el aviso visual.
+      return NextResponse.json({ 
+        availableSlots: [], 
+        status: "vacations",
+        message: bloqueosActivos[0].reason || "La clínica se encuentra cerrada en esta fecha." 
+      }, { status: 200 });
+    }
 
     // ============================================================================
     // 4. MATEMÁTICA DE HORARIOS SEGÚN EL DÍA (AHORA ABSOLUTA Y BLINDADA)
@@ -174,7 +197,7 @@ export async function GET(request: Request) {
     }
 
     // 7. RESPUESTA AL FRONTEND
-    return NextResponse.json({ availableSlots }, { status: 200 });
+    return NextResponse.json({ availableSlots, status: "open" }, { status: 200 });
 
   } catch (error) {
     console.error("🔥 Error en motor de disponibilidad:", error);
