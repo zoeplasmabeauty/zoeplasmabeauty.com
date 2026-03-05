@@ -7,11 +7,13 @@
  * Soporta el flujo de Triage, permitiendo al admin ver 
  * el estado real del turno y abrir las fichas médicas para su aprobación.
  * Comprende funciones de Reprogramación y Cancelación Manual para turnos en estados específicos.
+ * Permite generar alerta de cancelación a traves de un Modal interactivo 
+ * capturando y enviando el motivo (razón) exacto de la cancelación al paciente.
  * * RESPONSABILIDADES:
  * 1. Orquestación: Hacer la petición a la API segura (/api/admin/turnos).
  * 2. Renderizado Seguro: Mostrar la información sensible de los pacientes.
  * 3. Formateo: Convertir las fechas ISO de la base de datos a formato horario local.
- * 4. Gestión de Acciones: Permitir la revisión de turnos, cancelaciones y reprogramaciones.
+ * 4. Gestión de Acciones: Permitir la revisión de turnos, cancelaciones motivadas y reprogramaciones.
  */
 
 'use client';
@@ -45,6 +47,11 @@ export default function DashboardPage() {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newDuration, setNewDuration] = useState(''); // Para customDurationMinutes
+  
+  // Control del Modal de Cancelación con Motivo
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  
   const [isActionLoading, setIsActionLoading] = useState(false); // Para spinners en botones
 
   // Instanciamos el enrutador para empujar al usuario tras cerrar sesión o al ver detalles
@@ -105,21 +112,35 @@ export default function DashboardPage() {
   // FUNCIONES DE GESTIÓN (CANCELAR Y REPROGRAMAR)
   // ============================================================================
 
-  // A. Cancelar/Rechazar un turno manualmente
-  const handleCancelarTurno = async (appointmentId: string) => {
-    if (!window.confirm("¿Estás seguro de cancelar este turno? El espacio quedará liberado en la agenda.")) return;
+  // A.1 Abrir Modal de Cancelación
+  const openCancelModal = (appointmentId: string) => {
+    setSelectedTurnoId(appointmentId);
+    setCancelReason(''); // Limpiamos cualquier motivo anterior
+    setIsCancelModalOpen(true);
+  };
+
+  // A.2 Ejecutar Cancelación con Motivo
+  const handleConfirmarCancelacion = async () => {
+    if (!selectedTurnoId) return;
+    if (cancelReason.trim().length < 5) {
+      alert("Por favor, escribe un motivo válido y claro para el paciente.");
+      return;
+    }
     
     setIsActionLoading(true);
     try {
       const res = await fetch('/api/admin/turnos/modificar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId, action: 'cancel' })
+        // Enviamos el 'cancelReason' junto con la orden de cancelar
+        body: JSON.stringify({ appointmentId: selectedTurnoId, action: 'cancel', cancelReason: cancelReason.trim() })
       });
 
-      if (!res.ok) throw new Error("No se pudo cancelar el turno.");
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "No se pudo cancelar el turno.");
       
-      alert("Turno cancelado exitosamente.");
+      alert("Turno cancelado y paciente notificado.");
+      setIsCancelModalOpen(false);
       fetchTurnos(); // Recargamos la tabla
     } catch (error: any) {
       alert(error.message);
@@ -163,7 +184,7 @@ export default function DashboardPage() {
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error || "No se pudo reprogramar.");
       
-      alert("Turno reprogramado exitosamente.");
+      alert("Turno reprogramado exitosamente. Se notificó al paciente.");
       setIsReprogramModalOpen(false);
       fetchTurnos(); // Recargamos la tabla
     } catch (error: any) {
@@ -301,6 +322,7 @@ export default function DashboardPage() {
                           </Link>
                         )}
 
+                        {/* Modificamos el onclick de Cancelar para que abra el modal */}
                         {(turno.status === 'approved_unpaid' || turno.status === 'confirmed') && (
                           <div className="flex justify-end gap-3">
                             <button 
@@ -311,7 +333,7 @@ export default function DashboardPage() {
                               Reprogramar
                             </button>
                             <button 
-                              onClick={() => handleCancelarTurno(turno.id)}
+                              onClick={() => openCancelModal(turno.id)}
                               disabled={isActionLoading}
                               className="text-red-500 hover:text-red-700 underline text-xs"
                             >
@@ -334,6 +356,44 @@ export default function DashboardPage() {
         )}
 
       </div>
+
+      {/* =========================================================
+          MODAL DE CANCELACIÓN (Flota por encima del dashboard)
+          ========================================================= */}
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+            <h3 className="text-xl font-bold text-red-700 mb-2">Cancelar Turno</h3>
+            <p className="text-sm text-gray-600 mb-6">Esta acción liberará el espacio en la agenda. Por favor, escribe el motivo de la cancelación. Este mensaje será enviado por correo al paciente.</p>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Motivo de Cancelación</label>
+              <textarea 
+                className="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm outline-none focus:border-red-500 min-h-[100px] resize-none"
+                placeholder="Ej: Estimado paciente, lamentamos informarle que por motivos de fuerza mayor debemos cancelar su turno..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setIsCancelModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Volver
+              </button>
+              <button 
+                onClick={handleConfirmarCancelacion}
+                disabled={isActionLoading || cancelReason.trim().length < 5}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg shadow-sm transition-colors ${cancelReason.trim().length < 5 ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+              >
+                {isActionLoading ? 'Cancelando...' : 'Confirmar Cancelación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================
           MODAL DE REPROGRAMACIÓN (Flota por encima del dashboard)

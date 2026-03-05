@@ -4,27 +4,37 @@
  * * PROPÓSITO ESTRATÉGICO:
  * Gestionar las acciones de modificación manual de turnos por parte del Administrador.
  * Permite cancelar turnos (liberando agenda) o reprogramarlos ajustando fecha/hora y duración.
+ * Se inyectó el motor de notificaciones por correo electrónico (Brevo API).
+ * Al cancelar o reprogramar, el sistema extrae la información del paciente
+ * y dispara las plantillas de correo correspondientes de forma automática.
  * * RESPONSABILIDADES:
  * 1. Autenticación: Validar la sesión del administrador para evitar accesos no autorizados.
  * 2. Ruteo de Acción: Determinar si el payload exige una cancelación o una reprogramación.
  * 3. Actualización de Base de Datos: Modificar los registros en D1 asegurando la integridad.
+ * 4. Notificaciones: Comunicar al paciente los cambios realizados.
  */
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../../db';
-import { appointments } from '../../../../../db/schema';
+// Importamos las tablas patients y services para hacer los cruces (JOIN)
+import { appointments, patients, services } from '../../../../../db/schema';
 import { eq } from 'drizzle-orm';
+
+// Importamos las funciones constructoras de los correos de modificación
+import { getCancellationEmail, getReprogrammingEmail } from '../../../../../lib/emailTemplates';
 
 export const runtime = 'edge';
 
 // Contrato estricto para asegurar la estructura de los datos entrantes
+// cancelReason como string opcional para capturar el motivo del administrador
 interface ModificarPayload {
   appointmentId: string;
   action: 'cancel' | 'reprogram';
   newDateISO?: string;
   customDuration?: number | null;
+  cancelReason?: string; 
 }
 
 export async function POST(request: Request) {
@@ -43,7 +53,8 @@ export async function POST(request: Request) {
     // 2. LECTURA DEL PAYLOAD
     const clonedRequest = request.clone();
     const body = (await clonedRequest.json()) as ModificarPayload;
-    const { appointmentId, action, newDateISO, customDuration } = body;
+    // Extraemos la nueva variable 'cancelReason' del cuerpo de la petición
+    const { appointmentId, action, newDateISO, customDuration, cancelReason } = body;
 
     if (!appointmentId || !action) {
       return NextResponse.json({ error: "Faltan parámetros críticos (ID o Acción)." }, { status: 400 });
@@ -54,21 +65,73 @@ export async function POST(request: Request) {
     const env = ctx.env as unknown as Env;
     const db = createDbConnection(env);
 
+    // Extraemos la variable de entorno de Brevo para poder enviar correos
+    const cloudflareEnv = env as unknown as Record<string, string>;
+    const brevoApiKey = cloudflareEnv.BREVO_API_KEY || process.env.BREVO_API_KEY;
+
+    // ============================================================================
+    // 4. EXTRACCIÓN DE DATOS DE CONTEXTO (JOIN)
+    // Antes de modificar nada, necesitamos saber a quién le estamos alterando el turno
+    // para poder enviarle el correo correctamente.
+    // ============================================================================
+    console.log("⚙️ [API MODIFICAR TURNO] Extrayendo datos del paciente...");
+    const turnosEncontrados = await db.select({
+      patientName: patients.fullName,
+      patientEmail: patients.email,
+      serviceName: services.name,
+    })
+    .from(appointments)
+    .innerJoin(patients, eq(appointments.patientId, patients.id))
+    .innerJoin(services, eq(appointments.serviceId, services.id))
+    .where(eq(appointments.id, appointmentId));
+
+    const turnoData = turnosEncontrados[0];
+
+    if (!turnoData) {
+      return NextResponse.json({ error: "No se encontró el turno a modificar en la base de datos." }, { status: 404 });
+    }
+
     // ============================================================================
     // FLUJO A: CANCELAR TURNO
     // ============================================================================
     if (action === 'cancel') {
       console.log(`🛑 [API MODIFICAR] Cancelando turno ID: ${appointmentId}`);
       
-      // Cambiamos el estado a 'cancelled', liberando el espacio en el calendario público
+      // A.1 Cambiamos el estado a 'cancelled', liberando el espacio en el calendario público
       await db.update(appointments)
         .set({ status: 'cancelled' })
         .where(eq(appointments.id, appointmentId));
         
-      console.log("✅ [API MODIFICAR] Turno cancelado exitosamente.");
-      console.log("==================================================\n");
+      console.log("✅ [API MODIFICAR] Turno cancelado en base de datos.");
 
-      return NextResponse.json({ success: true, message: "Turno cancelado." }, { status: 200 });
+      // A.2 NOTIFICACIÓN DE CANCELACIÓN (Brevo)
+      // Si tenemos la llave de Brevo y el administrador envió un motivo, disparamos el correo
+      if (brevoApiKey && cancelReason) {
+        const emailHtml = getCancellationEmail({
+          patientName: turnoData.patientName,
+          serviceName: turnoData.serviceName,
+          cancellationReason: cancelReason
+        });
+
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'api-key': brevoApiKey
+          },
+          body: JSON.stringify({
+            sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
+            to: [{ email: turnoData.patientEmail, name: turnoData.patientName }],
+            subject: "Aviso importante sobre tu reserva - Zoe Plasma Beauty",
+            htmlContent: emailHtml 
+          })
+        });
+        console.log("✅ [API MODIFICAR] Correo de cancelación enviado al paciente.");
+      }
+
+      console.log("==================================================\n");
+      return NextResponse.json({ success: true, message: "Turno cancelado y notificado." }, { status: 200 });
     }
 
     // ============================================================================
@@ -81,7 +144,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Falta la nueva fecha y hora para reprogramar." }, { status: 400 });
       }
 
-      // Actualizamos la fecha y, si se proporcionó, la duración personalizada
+      // B.1 Actualizamos la fecha y, si se proporcionó, la duración personalizada
       // Si customDuration es null, la base de datos usará la duración estándar del servicio
       await db.update(appointments)
         .set({ 
@@ -90,10 +153,47 @@ export async function POST(request: Request) {
         })
         .where(eq(appointments.id, appointmentId));
         
-      console.log("✅ [API MODIFICAR] Turno reprogramado exitosamente.");
-      console.log("==================================================\n");
+      console.log("✅ [API MODIFICAR] Turno reprogramado en base de datos.");
 
-      return NextResponse.json({ success: true, message: "Turno reprogramado." }, { status: 200 });
+      // B.2 NOTIFICACIÓN DE REPROGRAMACIÓN (Brevo)
+      if (brevoApiKey) {
+        // Formateamos la nueva fecha (newDateISO) al formato amigable estilo Buenos Aires
+        const fechaObjeto = new Date(newDateISO);
+        const fechaFormateada = new Intl.DateTimeFormat('es-AR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Argentina/Buenos_Aires'
+        }).format(fechaObjeto);
+
+        const emailHtml = getReprogrammingEmail({
+          patientName: turnoData.patientName,
+          serviceName: turnoData.serviceName,
+          newDateFormatted: fechaFormateada
+        });
+
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'api-key': brevoApiKey
+          },
+          body: JSON.stringify({
+            sender: { name: "Zoe Plasma Beauty", email: "contacto@zoeplasmabeauty.com" },
+            to: [{ email: turnoData.patientEmail, name: turnoData.patientName }],
+            subject: "Actualización de tu cita - Zoe Plasma Beauty",
+            htmlContent: emailHtml 
+          })
+        });
+        console.log("✅ [API MODIFICAR] Correo de reprogramación enviado al paciente.");
+      }
+
+      console.log("==================================================\n");
+      return NextResponse.json({ success: true, message: "Turno reprogramado y notificado." }, { status: 200 });
     }
 
     // Si la acción no es ni cancel ni reprogram, rechazamos la petición

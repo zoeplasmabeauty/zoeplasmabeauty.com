@@ -8,6 +8,8 @@
  * Se añade la plantilla de alerta médica (Triage) para el administrador.
  * Diseño unificado "Clinical-light" para mantener 
  * consistencia absoluta de marca en todas las comunicaciones.
+ * Se añadieron las plantillas para notificar Reprogramaciones y 
+ * Cancelaciones manuales con notas personalizadas.
  */
 
 // ============================================================================
@@ -137,15 +139,14 @@ export const getAdminTriageAlertEmail = ({
 // ============================================================================
 // 3. PLANTILLA: APROBACIÓN DE TRIAGE Y LINK DE PAGO (Fase 3 - Paciente)
 // ============================================================================
-// CONTRATO ESTRICTO: Se añadieron los campos financieros necesarios para el desglose
 interface ApprovalEmailProps {
   patientName: string;
   serviceName: string;
-  precioTratamiento: string; // Nuevo: Precio total del tratamiento
-  valorSena: string; // Nuevo: Valor base de la seña (50.000)
-  cobroServicio: string; // Nuevo: 8.25% de la seña
-  totalAPagarMP: string; // Nuevo: Seña + 8.25%
-  saldoRestante: string; // Nuevo: Precio Tratamiento - Seña
+  precioTratamiento: string; // Precio total del tratamiento
+  valorSena: string; // Valor base de la seña (50.000)
+  cobroServicio: string; // 8.25% de la seña
+  totalAPagarMP: string; // Seña + 8.25%
+  saldoRestante: string; // Precio Tratamiento - Seña
   checkoutUrl: string;
 }
 
@@ -261,6 +262,95 @@ export const getRejectionEmail = ({
           </p>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
             Si consideras que hubo un error al llenar la ficha o deseas consultar cuándo podrías ser apto/a, por favor responde a este correo o escríbenos a nuestro WhatsApp oficial.
+          </p>
+          
+          ${FOOTER_HTML}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ============================================================================
+// 5. PLANTILLA: CANCELACIÓN MANUAL CON MOTIVO (Panel Admin -> Paciente)
+// ============================================================================
+interface CancellationEmailProps {
+  patientName: string;
+  serviceName: string;
+  cancellationReason: string;
+}
+
+export const getCancellationEmail = ({
+  patientName,
+  serviceName,
+  cancellationReason
+}: CancellationEmailProps): string => {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark};">
+      <div style="max-width: 550px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
+        
+        ${HEADER_HTML}
+        
+        <div style="padding: 40px 30px;">
+          <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
+          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
+            Te escribimos para informarte que ha habido una actualización respecto a tu reserva para el tratamiento de <strong>${serviceName}</strong>.
+          </p>
+          
+          <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
+            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Estado: Turno Cancelado</p>
+            <p style="margin: 0; color: #b91c1c; font-size: 15px; line-height: 1.6; font-style: italic;">
+              "${cancellationReason}"
+            </p>
+          </div>
+          
+          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
+            Si necesitas reprogramar tu cita o tienes alguna consulta adicional sobre este aviso, no dudes en contactarnos directamente por WhatsApp.
+          </p>
+          
+          ${FOOTER_HTML}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ============================================================================
+// 6. PLANTILLA: REPROGRAMACIÓN DE TURNO (Panel Admin -> Paciente)
+// ============================================================================
+interface ReprogrammingEmailProps {
+  patientName: string;
+  serviceName: string;
+  newDateFormatted: string;
+}
+
+export const getReprogrammingEmail = ({
+  patientName,
+  serviceName,
+  newDateFormatted
+}: ReprogrammingEmailProps): string => {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark};">
+      <div style="max-width: 550px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
+        
+        ${HEADER_HTML}
+        
+        <div style="padding: 40px 30px;">
+          <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
+          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
+            Te confirmamos que el horario de tu cita ha sido modificado exitosamente.
+          </p>
+          
+          <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #0369a1; text-transform: uppercase; letter-spacing: 1px;">Nuevo Horario Confirmado</p>
+            <p style="margin: 0 0 15px 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark}; text-transform: capitalize;">${newDateFormatted}</p>
+            
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #0369a1; text-transform: uppercase; letter-spacing: 1px;">Tratamiento</p>
+            <p style="margin: 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">${serviceName}</p>
+          </div>
+          
+          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
+            Por favor, toma nota de este cambio. El resto de las condiciones y detalles de tu reserva se mantienen sin alteraciones.
           </p>
           
           ${FOOTER_HTML}
