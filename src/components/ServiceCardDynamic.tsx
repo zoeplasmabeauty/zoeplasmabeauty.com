@@ -32,8 +32,10 @@ interface ServiceModel {
   extended?: {
     fullDescription: string;
     result?: string; // Propiedad para aislar el "Resultado"
+    benefitsTitle?: string; // INYECCIÓN: Título dinámico para la lista de beneficios (Ej: "Tratamientos complementarios")
     benefits: string[];
     priceTable: { type: string; cost: string }[];
+    specialNote?: string; // INYECCIÓN: Nota aclaratoria resaltada al final del modal
   }
 }
 
@@ -176,7 +178,10 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
               {/* LISTA DE BENEFICIOS (Renderizado Mapeado) */}
               {service.extended?.benefits && service.extended.benefits.length > 0 && (
                 <div className="mb-8">
-                  <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Zonas a mejorar</h4>
+                  {/* INYECCIÓN: Usamos benefitsTitle si existe, sino caemos en el valor por defecto */}
+                  <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">
+                    {service.extended.benefitsTitle || "Zonas a mejorar"}
+                  </h4>
                   <ul className="space-y-3">
                     {service.extended.benefits.map((benefit, i) => (
                       <li key={i} className="flex items-start">
@@ -192,7 +197,7 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
 
               {/* TABLA DE PRECIOS Y VARIACIONES (Renderizado Condicional) */}
               {service.extended?.priceTable && service.extended.priceTable.length > 0 && (
-                <div className="mb-10">
+                <div className="mb-8">
                   <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Tiempos y Precios</h4>
                   <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
                     {service.extended.priceTable.map((item, i) => (
@@ -201,6 +206,27 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
                         <span className="font-bold text-[var(--color-zoe-blue)] whitespace-nowrap">{item.cost}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ====================================================================
+                  NOTA ESPECIAL / ACLARACIÓN (Inyección para Evaluaciones Médicas)
+                  ==================================================================== */}
+              {service.extended?.specialNote && (
+                <div className="mb-10 bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-xl">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-orange-800">Aviso Importante</h3>
+                      <div className="mt-2 text-sm text-orange-700">
+                        <p>{service.extended.specialNote}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

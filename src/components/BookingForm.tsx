@@ -9,8 +9,8 @@
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
  * 5. Flujo Médico: Redirección automática al Paso 2 (Ficha Clínica).
  * 6. Lógica de selección anidada (Categoría -> Variante).
- * 7. Gestión de Bloqueos (Vacaciones): Intercepta el estado "vacations" de la API
- * para mostrar un aviso visual e impedir que se elija una hora.
+ * 7. Gestión de Bloqueos (Vacaciones).
+ * "Flujo de Evaluación Abierta" para la categoría de Skin Regeneration.
  */
 
 'use client'; // Directiva estricta: Este código corre en el navegador del paciente.
@@ -75,6 +75,9 @@ export default function BookingForm() {
   const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
   const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
 
+  // Constante para identificar la categoría especial
+  const CATEGORIA_ESPECIAL = "Skin regeneration y tratamientos complementarios";
+
   // 4. EXTRACCIÓN AL INICIAR (ON MOUNT)
   // Llama a tu ruta GET para poblar el select dinámicamente.
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function BookingForm() {
       "Plasma Fibroblast": [],
       "Tratamiento de estrias con plasma fibroblast": [],
       "Eliminacion de lesiones benignas": [],
-      "Skin regeneration y tratamientos complementarios": []
+      [CATEGORIA_ESPECIAL]: []
     };
 
     services.forEach(service => {
@@ -115,8 +118,9 @@ export default function BookingForm() {
         grouped["Tratamiento de estrias con plasma fibroblast"].push(service);
       } else if (service.name.includes("lesiones benignas")) {
         grouped["Eliminacion de lesiones benignas"].push(service);
-      } else if (service.name.includes("Skin regeneration")) {
-        grouped["Skin regeneration y tratamientos complementarios"].push(service);
+      } else if (service.name.includes("Skin regeneration") || service.name.includes("Evaluación Clínica")) {
+        // Agrupamos bajo la categoría especial
+        grouped[CATEGORIA_ESPECIAL].push(service);
       } else if (service.name.includes("Plasma Fibroblast") && !service.name.includes("estrias")) {
         grouped["Plasma Fibroblast"].push(service);
       } else {
@@ -181,7 +185,7 @@ export default function BookingForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Evita que la página se recargue
 
-    // Validación radical: exige también la hora (selectedTime)
+    // Exige también la hora (selectedTime)
     if (!selectedDate || !selectedServiceId || !selectedTime) {
       setErrorMessage('Por favor, selecciona un tratamiento, una fecha y un horario.');
       return;
@@ -286,9 +290,11 @@ export default function BookingForm() {
     );
   }
 
+  // Función auxiliar para determinar si debemos ocultar el selector de variantes
+  const isSpecialCategory = selectedCategory === CATEGORIA_ESPECIAL;
+
   // 7. MOTOR GRÁFICO (UI RENDER)
   return (
-    /* REESTRUCTURACIÓN: max-w-5xl para dar más espacio y evitar solapamiento lateral */
     <div className="max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-lg border border-gray-100">
       <h2 className="text-3xl font-light text-gray-800 mb-8 border-b pb-4">
         Reserva tu <span className="font-semibold text-stone-700">Tratamiento</span>
@@ -371,8 +377,17 @@ export default function BookingForm() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-transparent outline-none transition bg-white"
               value={selectedCategory}
               onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setSelectedServiceId(''); // Reseteamos la variante si cambia la categoría principal
+                const cat = e.target.value;
+                setSelectedCategory(cat);
+                
+                // LÓGICA NINJA: Si es la categoría especial, auto-asignamos el ID del servicio
+                if (cat === CATEGORIA_ESPECIAL && categories[cat]?.length > 0) {
+                  // Asumimos que en D1 tienes un solo servicio bajo este nombre
+                  setSelectedServiceId(categories[cat][0].id);
+                } else {
+                  setSelectedServiceId(''); 
+                }
+                
                 setAvailableSlots([]);
                 setVacationMessage('');
               }}
@@ -385,8 +400,28 @@ export default function BookingForm() {
             </select>
           </div>
 
-          {/* Renderizado Condicional: Solo aparece si la categoría tiene múltiples opciones */}
-          {selectedCategory && categories[selectedCategory]?.length > 1 && (
+          {/* ====================================================================
+              TARJETA DE TRANSPARENCIA (Aviso Especial Skin Regeneration)
+              ==================================================================== */}
+          {isSpecialCategory && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 shadow-sm transform transition-all duration-300">
+              <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Reserva por Evaluación Clínica
+              </h4>
+              <p className="text-sm text-orange-900 leading-relaxed">
+                Este tratamiento requiere una evaluación presencial previa para determinar qué tecnología necesita tu piel <span className="font-semibold">(Dermapen, Dermaplaning, Peeling o Exosomas)</span>. 
+              </p>
+              <div className="mt-3 pt-3 border-t border-orange-200/50">
+                <p className="text-xs text-orange-800">
+                  El valor abonado hoy corresponde a la consulta evaluativa y <strong>se descontará íntegramente</strong> del valor final del tratamiento que te realices ese mismo día.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Renderizado Condicional Clásico: Solo aparece si NO es la categoría especial Y tiene múltiples opciones */}
+          {selectedCategory && !isSpecialCategory && categories[selectedCategory]?.length > 1 && (
              <div>
                <label className="block text-sm font-semibold text-[var(--color-zoe-blue)] mb-2">Variante del Tratamiento</label>
                <select 
@@ -409,8 +444,8 @@ export default function BookingForm() {
              </div>
           )}
 
-          {/* Si la categoría solo tiene una opción, la auto-seleccionamos detrás de escena */}
-          {selectedCategory && categories[selectedCategory]?.length === 1 && (() => {
+          {/* Si la categoría normal solo tiene una opción, la auto-seleccionamos detrás de escena */}
+          {selectedCategory && !isSpecialCategory && categories[selectedCategory]?.length === 1 && (() => {
             if (selectedServiceId !== categories[selectedCategory][0].id) {
                setSelectedServiceId(categories[selectedCategory][0].id);
             }

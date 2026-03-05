@@ -20,8 +20,6 @@ import ServiceCardDynamic from '../ServiceCardDynamic';
 export default function Services() {
   // DICCIONARIO DE SERVICIOS AMPLIADO: 
   // Centralizamos los datos del catálogo.
-  // Nota: 'imageUrl' actualmente usa colores sólidos como marcadores de posición.
-  // Deberás reemplazar estos colores por rutas de imágenes reales (.jpg o .webp).
   const servicesData = [
     {
       title: "Plasma Fibroblast",
@@ -89,12 +87,15 @@ export default function Services() {
     {
       title: "Skin Regeneration y Tratamientos Complementarios",
       description: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast.",
-      duration: "Aprox. 1.5 hrs",
+      duration: "Aprox. 2 hrs", // Duración sincronizada con la base de datos
       tag: "Complementario",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
       extended: {
         fullDescription: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast. Resultado: mejora de textura, luminosidad y calidad de piel.",
         result: "Mejora de textura, luminosidad y calidad de piel",
+        // INYECCIÓN DE PROPIEDAD ESPECIAL: 
+        // Cambia el título "Zonas a mejorar" por "Tratamientos complementarios" en el Modal
+        benefitsTitle: "Tratamientos complementarios", 
         benefits: [
           "Dermapen",
           "Dermaplaning",
@@ -102,8 +103,10 @@ export default function Services() {
           "Exosomas regenerativos"
         ],
         priceTable: [
-          { type: "1 hora y media", cost: "Precio previa evaluación" }
-        ]
+          { type: "2 horas", cost: "Precio previa evaluación" }
+        ],
+        // INYECCIÓN DE NOTA ACLARATORIA
+        specialNote: "El tratamiento complementario específico se decidirá junto a la profesional tras una evaluación presencial en el consultorio. La reserva del turno por evaluación tiene un valor de $30.000, los cuales se descontarán íntegramente del valor final del tratamiento a realizar."
       }
     },
   ];
