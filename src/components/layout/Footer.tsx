@@ -1,23 +1,34 @@
+"use client";
 /**
  * COMPONENTE: Footer.tsx
- * ARQUITECTURA: Layout / Ancla de Navegación y Cumplimiento Legal
+ * ARQUITECTURA: Layout / Ancla de Navegación y Cumplimiento Legal (Client Component)
  * * PROPÓSITO ESTRATÉGICO: 
  * Cerrar la estructura de la página ofreciendo una red de seguridad navegacional. 
  * En el nicho estético/médico, su función principal es mitigar riesgos legales 
  * mediante "disclaimers" visibles y consolidar la autoridad de marca.
  * * RESPONSABILIDADES:
- * 1. Navegación Secundaria: Replicar los enlaces del Navbar para evitar que el usuario 
- * tenga que hacer scroll hacia arriba (reducción de fricción).
- * 2. Cumplimiento Legal: Alojar el aviso de exención de responsabilidad sobre 
- * los resultados médicos/estéticos.
- * 3. Persistencia de Marca: Mostrar el copyright actualizado dinámicamente y las redes sociales.
- * 4. Incorporación del ecosistema completo de redes sociales (FB, TikTok, IG Academy).
+ * 1. Navegación Secundaria: Replicar los enlaces del Navbar.
+ * 2. Cumplimiento Legal: Alojar el aviso de exención de responsabilidad.
+ * 3. Persistencia de Marca: Mostrar el copyright actualizado.
+ * 4. Puerta Trasera (Backdoor): Acceso oculto y elegante al panel de control.
  */
 
+import { useRouter } from 'next/navigation';
+
 export default function Footer() {
+  const router = useRouter();
+  
   // Motor dinámico para el año del Copyright. 
   // Evita que tu página se vea desactualizada ("© 2023") en el futuro.
   const currentYear = new Date().getFullYear();
+
+  // ============================================================================
+  // FUNCIÓN NINJA: El Doble Clic
+  // Redirige silenciosamente a la ruta de administración.
+  // ============================================================================
+  const handleAdminBackdoor = () => {
+    router.push('/admin');
+  };
 
   return (
     // CONTENEDOR PRINCIPAL DEL FOOTER
@@ -32,22 +43,26 @@ export default function Footer() {
           
           {/* COLUMNA 1: Identidad de Marca y Propuesta */}
           <div className="flex flex-col">
-            {/* Logo textual interactivo que lleva al inicio */}
-            <a href="#inicio" className="group mb-6 inline-block">
+            
+            {/* ========================================================= */}
+            {/* LOGO CON DOBLE CLIC OCULTO                              */}
+            {/* ========================================================= */}
+            <a 
+              href="#inicio" 
+              onDoubleClick={handleAdminBackdoor} // Aquí está la magia
+              className="group mb-6 inline-block select-none" // select-none evita que el texto se sombree al hacer doble clic
+            >
               <span className="text-2xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
                 Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
               </span>
             </a>
+
             <p className="mb-6 text-sm font-medium leading-relaxed text-[var(--color-zoe-muted)]">
               Vanguardia en tratamientos estéticos no invasivos. 
               Elevamos tu belleza natural con tecnología electrónica de precisión y un enfoque seguro.
             </p>
             
-            {/* ====================================================================
-                REDES SOCIALES (Ecosistema Digital Completo)
-                Mantenemos el diseño minimalista usando SVGs monocromáticos que 
-                se tiñen con el color de la marca (var--color-zoe-blue) al hacer hover.
-                ==================================================================== */}
+            {/* REDES SOCIALES (Ecosistema Digital Completo) */}
             <div className="flex flex-wrap gap-4">
               
               {/* 1. INSTAGRAM PRINCIPAL (Clínica) */}
@@ -162,7 +177,6 @@ export default function Footer() {
         <div className="mt-16 border-t border-[var(--color-zoe-blue)]/10 pt-8">
           
           {/* DISCLAIMER MÉDICO (Innegociable en tu nicho) */}
-          {/* INVERSIÓN VISUAL: Caja con el tono menta de la marca pero atenuado para no competir */}
           <div className="mb-8 rounded-xl border border-[var(--color-zoe-blue)]/10 bg-[var(--color-zoe-mint)]/30 p-6 text-center md:text-left">
             <p className="text-xs font-medium leading-relaxed text-[var(--color-zoe-muted)]">
               <strong className="font-bold text-[var(--color-zoe-dark)]">Aviso Legal:</strong> Los resultados de los tratamientos con tecnología plasma (Fibroblast) pueden variar significativamente según el tipo de piel, la edad, el historial médico y el cumplimiento de los cuidados posteriores de cada paciente. Las imágenes de &quot;Antes y Después&quot; publicadas en este sitio representan casos reales, pero no garantizan resultados idénticos. La información proporcionada en este sitio web tiene fines exclusivamente educativos y no reemplaza la consulta, el diagnóstico o el consejo médico profesional.
