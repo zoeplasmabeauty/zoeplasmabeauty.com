@@ -22,13 +22,12 @@ import { appointments, services } from '../../../../db/schema';
 // Importamos 'inArray' para poder filtrar múltiples estados a la vez
 import { eq, and, gte, lt, inArray } from 'drizzle-orm';
 // Usamos date-fns para manejar la matemática de tiempo de forma segura y precisa
-import { addMinutes, parseISO, isBefore, isAfter, setHours, setMinutes, format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+// Limpiamos importaciones que causaban desfase UTC (setHours, setMinutes, toZonedTime)
+import { addMinutes, parseISO, isBefore, isAfter } from 'date-fns';
 
 export const runtime = 'edge';
 
 // CONFIGURACIÓN DE LA CLÍNICA (Reglas estáticas)
-const TIMEZONE = 'America/Argentina/Buenos_Aires';
 const INTERVALO_MINUTOS = 30; // Bloques de media hora
 const HORA_CIERRE = 18;
 
@@ -57,10 +56,15 @@ export async function GET(request: Request) {
     }
     const duracionTratamiento = selectedService.durationMinutes;
 
-    // 4. MATEMÁTICA DE HORARIOS SEGÚN EL DÍA
-    // Convertimos el string 'YYYY-MM-DD' a un objeto Date en la zona horaria de Buenos Aires
-    const fechaSolicitada = toZonedTime(`${dateParam}T00:00:00`, TIMEZONE);
-    const diaDeLaSemana = fechaSolicitada.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+    // ============================================================================
+    // 4. MATEMÁTICA DE HORARIOS SEGÚN EL DÍA (AHORA ABSOLUTA Y BLINDADA)
+    // Al forzar el "-03:00" en el string, obligamos a Cloudflare a respetar 
+    // la hora de Buenos Aires sin importar dónde esté el servidor físico.
+    // ============================================================================
+    const startOfDayUTC = new Date(`${dateParam}T00:00:00.000-03:00`);
+    const endOfDayUTC = new Date(`${dateParam}T23:59:59.999-03:00`);
+
+    const diaDeLaSemana = startOfDayUTC.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
 
     // Regla: Los domingos la consola está apagada
     if (diaDeLaSemana === 0) {
@@ -69,11 +73,6 @@ export async function GET(request: Request) {
 
     // Definimos a qué hora abrimos el canal (10hs en semana, 12hs los sábados)
     const horaApertura = diaDeLaSemana === 6 ? 12 : 10;
-
-    // Construimos los límites absolutos del día (00:00:00 a 23:59:59) en UTC 
-    // para buscar correctamente en la base de datos sin errores de zona horaria.
-    const startOfDayUTC = new Date(`${dateParam}T00:00:00.000-03:00`).toISOString();
-    const endOfDayUTC = new Date(`${dateParam}T23:59:59.999-03:00`).toISOString();
 
     // 5. EXTRACCIÓN DE LA "PISTA" OCUPADA (Turnos ya guardados)
     // Hacemos un JOIN con services para saber cuánto dura cada turno ya guardado
@@ -87,8 +86,9 @@ export async function GET(request: Request) {
     .innerJoin(services, eq(appointments.serviceId, services.id))
     .where(
       and(
-        gte(appointments.appointmentDate, startOfDayUTC),
-        lt(appointments.appointmentDate, endOfDayUTC),
+        // Buscamos colisiones transformando nuestros límites absolutos a formato ISO
+        gte(appointments.appointmentDate, startOfDayUTC.toISOString()),
+        lt(appointments.appointmentDate, endOfDayUTC.toISOString()),
         // Excluimos SOLO los turnos cancelados o rechazados.
         // Cualquier turno en triage, revisión, falta de pago o confirmado, BLOQUEA la agenda.
         inArray(appointments.status, [
@@ -109,27 +109,43 @@ export async function GET(request: Request) {
       return { inicio, fin };
     });
 
-    // 6. GENERADOR DE BLOQUES DE TIEMPO (El Secuenciador)
+    // ============================================================================
+    // 6. GENERADOR DE BLOQUES DE TIEMPO (El Secuenciador Absoluto)
+    // ============================================================================
     const availableSlots: string[] = [];
-    const ahora = toZonedTime(new Date(), TIMEZONE); // Hora actual real en Buenos Aires
+    const ahoraRealUTC = new Date(); // Hora real exacta en el servidor en este milisegundo
     
-    // Configuramos el puntero de tiempo en la hora de apertura
-    let slotActual = setMinutes(setHours(fechaSolicitada, horaApertura), 0);
-    const limiteCierre = setMinutes(setHours(fechaSolicitada, HORA_CIERRE), 0);
+    // Configuramos el límite de cierre como un momento exacto en el tiempo
+    const cierreAbsoluto = new Date(`${dateParam}T${HORA_CIERRE.toString().padStart(2, '0')}:00:00.000-03:00`);
 
-    // Iteramos cada 30 minutos hasta llegar al final del día
-    while (isBefore(slotActual, limiteCierre)) {
-      const slotFin = addMinutes(slotActual, duracionTratamiento);
+    let currentHour = horaApertura;
+    let currentMinute = 0;
 
-      // REGLA A: Si el tratamiento termina después de la hora de cierre, no se puede agendar.
-      if (isAfter(slotFin, limiteCierre)) {
+    // Iteramos manualmente hora por hora y minuto por minuto para evitar funciones mutables
+    while (currentHour < HORA_CIERRE) {
+      // Creamos el string "HH:mm" visual para el paciente
+      const hh = currentHour.toString().padStart(2, '0');
+      const mm = currentMinute.toString().padStart(2, '0');
+      
+      // Creamos el bloque exacto forzando el huso horario argentino (-03:00)
+      const slotLocalStr = `${dateParam}T${hh}:${mm}:00.000-03:00`;
+      const slotInicioAbsoluto = new Date(slotLocalStr);
+      const slotFinAbsoluto = addMinutes(slotInicioAbsoluto, duracionTratamiento);
+
+      // REGLA A: Si el tratamiento termina después de la hora de cierre, detenemos el ciclo.
+      if (isAfter(slotFinAbsoluto, cierreAbsoluto)) {
         break; 
       }
 
       // REGLA B: Si el día elegido es HOY, no podemos mostrar horas que ya pasaron.
-      // Le damos un margen de seguridad (ej. no agendar algo para dentro de 5 minutos, sino con anticipación)
-      if (dateParam === format(ahora, 'yyyy-MM-dd') && isBefore(slotActual, addMinutes(ahora, 30))) {
-        slotActual = addMinutes(slotActual, INTERVALO_MINUTOS);
+      // Comparamos el bloque absoluto contra la hora absoluta actual (con 30 mins de margen)
+      if (isBefore(slotInicioAbsoluto, addMinutes(ahoraRealUTC, 30))) {
+        // Avanzamos el puntero manual y saltamos este bloque
+        currentMinute += INTERVALO_MINUTOS;
+        if (currentMinute >= 60) {
+          currentHour += 1;
+          currentMinute -= 60;
+        }
         continue;
       }
 
@@ -138,7 +154,7 @@ export async function GET(request: Request) {
       let hayColision = false;
       for (const ocupado of bloquesOcupados) {
         // Un turno colisiona si empieza antes de que termine el otro Y termina después de que el otro empiece
-        if (isBefore(slotActual, ocupado.fin) && isAfter(slotFin, ocupado.inicio)) {
+        if (isBefore(slotInicioAbsoluto, ocupado.fin) && isAfter(slotFinAbsoluto, ocupado.inicio)) {
           hayColision = true;
           break;
         }
@@ -146,11 +162,15 @@ export async function GET(request: Request) {
 
       // Si la señal está limpia, guardamos la hora en la lista de opciones (ej: "10:30")
       if (!hayColision) {
-        availableSlots.push(format(slotActual, 'HH:mm'));
+        availableSlots.push(`${hh}:${mm}`);
       }
 
       // Avanzamos el puntero 30 minutos para el siguiente ciclo
-      slotActual = addMinutes(slotActual, INTERVALO_MINUTOS);
+      currentMinute += INTERVALO_MINUTOS;
+      if (currentMinute >= 60) {
+        currentHour += 1;
+        currentMinute -= 60;
+      }
     }
 
     // 7. RESPUESTA AL FRONTEND
