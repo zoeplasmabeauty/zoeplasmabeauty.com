@@ -10,25 +10,16 @@
  * 1. Navegación Secundaria: Replicar los enlaces del Navbar.
  * 2. Cumplimiento Legal: Alojar el aviso de exención de responsabilidad.
  * 3. Persistencia de Marca: Mostrar el copyright actualizado.
- * 4. Puerta Trasera (Backdoor): Acceso oculto y elegante al panel de control.
+ * 4. Puerta Trasera (Backdoor): Acceso oculto en el año del copyright.
  */
 
-import { useRouter } from 'next/navigation';
+// Importamos Link de Next.js para una transición rápida sin recargar la página
+import Link from 'next/link';
 
 export default function Footer() {
-  const router = useRouter();
-  
   // Motor dinámico para el año del Copyright. 
   // Evita que tu página se vea desactualizada ("© 2023") en el futuro.
   const currentYear = new Date().getFullYear();
-
-  // ============================================================================
-  // FUNCIÓN NINJA: El Doble Clic
-  // Redirige silenciosamente a la ruta de administración.
-  // ============================================================================
-  const handleAdminBackdoor = () => {
-    router.push('/admin');
-  };
 
   return (
     // CONTENEDOR PRINCIPAL DEL FOOTER
@@ -44,13 +35,10 @@ export default function Footer() {
           {/* COLUMNA 1: Identidad de Marca y Propuesta */}
           <div className="flex flex-col">
             
-            {/* ========================================================= */}
-            {/* LOGO CON DOBLE CLIC OCULTO                              */}
-            {/* ========================================================= */}
+            {/* Logo textual interactivo que lleva al inicio (Restaurado a su estado original) */}
             <a 
               href="#inicio" 
-              onDoubleClick={handleAdminBackdoor} // Aquí está la magia
-              className="group mb-6 inline-block select-none" // select-none evita que el texto se sombree al hacer doble clic
+              className="group mb-6 inline-block" 
             >
               <span className="text-2xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
                 Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
@@ -186,7 +174,17 @@ export default function Footer() {
           {/* COPYRIGHT Y CRÉDITOS */}
           <div className="flex flex-col items-center justify-between gap-4 text-xs font-medium text-[var(--color-zoe-muted)]/80 md:flex-row">
             <p>
-              &copy; {currentYear} Zoe Plasma Beauty. Todos los derechos reservados.
+              &copy; 
+              {/* LA PUERTA TRASERA (BACKDOOR): El año es un enlace invisible al panel de admin */}
+              <Link 
+                href="/admin" 
+                className="cursor-text outline-none focus:outline-none ml-1 mr-1" 
+                aria-hidden="true" 
+                tabIndex={-1}
+              >
+                {currentYear}
+              </Link> 
+              Zoe Plasma Beauty. Todos los derechos reservados.
             </p>
             <p>
               Diseñado y desarrollado para el alto rendimiento.
