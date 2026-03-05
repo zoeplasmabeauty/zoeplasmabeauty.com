@@ -122,6 +122,12 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4 text-sm font-medium text-[var(--color-zoe-muted)]">
               <li>
+                <a href="/#" className="transition-colors hover:text-[var(--color-zoe-blue)]">Inicio</a>
+              </li>
+              <li>
+                <a href="/sobre-mi" className="transition-colors hover:text-[var(--color-zoe-blue)]">Sobre mí</a>
+              </li>
+              <li>
                 <a href="#conocenos" className="transition-colors hover:text-[var(--color-zoe-blue)]">La Filosofía Zoe</a>
               </li>
               <li>
