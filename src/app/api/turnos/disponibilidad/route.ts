@@ -5,6 +5,9 @@
  * Actuar como el "Radar de Colisiones" del calendario. Calcula matemáticamente 
  * qué bloques de 30 minutos están libres en un día específico, cruzando el horario 
  * de apertura de la clínica, la duración del tratamiento deseado y los turnos ya existentes.
+ * Bloquea la agenda con los estados reales del turno en la BD
+ * ('confirmed', 'under_review', etc.) y se integró la lectura de 'customDurationMinutes'
+ * para respetar las reprogramaciones de tiempo personalizadas del Administrador.
  * * RESPONSABILIDADES:
  * 1. Reglas de Negocio: Aplica horarios de L a V (10 a 18hs) y Sábados (12 a 18hs).
  * 2. Extracción: Obtiene los turnos de ese día y sus duraciones desde la BD.
@@ -16,7 +19,8 @@ import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../db'; 
 import { appointments, services } from '../../../../db/schema';
-import { eq, and, gte, lt } from 'drizzle-orm';
+// Importamos 'inArray' para poder filtrar múltiples estados a la vez
+import { eq, and, gte, lt, inArray } from 'drizzle-orm';
 // Usamos date-fns para manejar la matemática de tiempo de forma segura y precisa
 import { addMinutes, parseISO, isBefore, isAfter, setHours, setMinutes, format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
@@ -75,7 +79,9 @@ export async function GET(request: Request) {
     // Hacemos un JOIN con services para saber cuánto dura cada turno ya guardado
     const turnosOcupados = await db.select({
       fechaInicio: appointments.appointmentDate,
-      duracion: services.durationMinutes
+      duracion: services.durationMinutes,
+      // Extraemos la duración personalizada inyectada en la base de datos
+      duracionPersonalizada: appointments.customDurationMinutes 
     })
     .from(appointments)
     .innerJoin(services, eq(appointments.serviceId, services.id))
@@ -83,16 +89,23 @@ export async function GET(request: Request) {
       and(
         gte(appointments.appointmentDate, startOfDayUTC),
         lt(appointments.appointmentDate, endOfDayUTC),
-        // IMPORTANTE: Excluimos los turnos cancelados, esos liberan espacio.
-        // Aquí asumiremos que "pending" y "confirmed" bloquean la agenda.
-        eq(appointments.status, 'pending') // Si tuvieras 'confirmed', deberías usar un operador 'inArray'
+        // Excluimos SOLO los turnos cancelados o rechazados.
+        // Cualquier turno en triage, revisión, falta de pago o confirmado, BLOQUEA la agenda.
+        inArray(appointments.status, [
+          'awaiting_triage', 
+          'under_review', 
+          'approved_unpaid', 
+          'confirmed', 
+          'completed'
+        ])
       )
     );
 
     // Mapeamos los turnos ocupados a objetos de { inicio, fin } para el cálculo de colisiones
     const bloquesOcupados = turnosOcupados.map(turno => {
       const inicio = parseISO(turno.fechaInicio);
-      const fin = addMinutes(inicio, turno.duracion);
+      // Si el admin asignó un tiempo distinto (customDuration), tiene prioridad absoluta.
+      const fin = addMinutes(inicio, turno.duracionPersonalizada || turno.duracion);
       return { inicio, fin };
     });
 
