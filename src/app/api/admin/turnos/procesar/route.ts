@@ -7,8 +7,8 @@
  * y actualiza el estado inmutable del turno en la base de datos D1.
  * Se delega la construcción del HTML de los correos a la librería 'emailTemplates' 
  * para mantener el controlador limpio y focalizado en la lógica transaccional.
- * Se implementó el motor de cálculo de desgloses para enviar al paciente el detalle
- * exacto de Seña, Cargos por Servicio y Saldo Restante a pagar en la clínica y que se envia al mail
+ * En el flujo de Rechazo, se captura el motivo clínico ('rejectionReason') 
+ * provisto por el administrador para inyectarlo en el correo del paciente.
  * * RESPONSABILIDADES:
  * 1. Seguridad: Verificar la cookie 'zoe_admin_session'.
  * 2. Extracción de Contexto: Buscar datos del paciente y servicio (incluyendo PRECIO).
@@ -18,7 +18,7 @@
  * - Conectar con Brevo API para enviar el correo de aprobación con el link y desglose.
  * - Actualizar estado a 'approved_unpaid'.
  * 4. Flujo de Rechazo:
- * - Conectar con Brevo API para enviar correo de denegación médica.
+ * - Conectar con Brevo API para enviar correo de denegación médica con MOTIVO ESPECÍFICO.
  * - Actualizar estado a 'rejected' (liberando automáticamente el calendario).
  */
 
@@ -37,6 +37,7 @@ export const runtime = 'edge';
 interface ProcesarPayload {
   appointmentId: string;
   action: 'approve' | 'reject';
+  rejectionReason?: string; // Captura el motivo si la acción es 'reject'
 }
 
 export async function POST(request: Request) {
@@ -54,7 +55,8 @@ export async function POST(request: Request) {
 
     // 2. LECTURA DEL PAYLOAD
     const clonedRequest = request.clone();
-    const { appointmentId, action } = (await clonedRequest.json()) as ProcesarPayload;
+    // Extraemos la nueva variable rejectionReason
+    const { appointmentId, action, rejectionReason } = (await clonedRequest.json()) as ProcesarPayload;
 
     if (!appointmentId || !action) {
       return NextResponse.json({ error: "Faltan parámetros críticos (ID o Acción)." }, { status: 400 });
@@ -84,7 +86,6 @@ export async function POST(request: Request) {
     const brevoApiKey = cloudflareEnv.BREVO_API_KEY || process.env.BREVO_API_KEY;
 
     // 4. EXTRACCIÓN DEL CONTEXTO DEL TURNO
-    // Agregamos la extracción de 'services.price'
     const turnosEncontrados = await db.select({
       id: appointments.id,
       status: appointments.status,
@@ -216,12 +217,18 @@ export async function POST(request: Request) {
     else if (action === 'reject') {
       console.log(`🛑 [API PROCESAR] Acción: RECHAZAR paciente ${turnoData.patientName}`);
 
+      // VALIDACIÓN: Exigimos que el motivo exista si se va a rechazar
+      if (!rejectionReason || rejectionReason.trim().length < 5) {
+        return NextResponse.json({ error: "Es obligatorio proporcionar un motivo médico para rechazar el turno." }, { status: 400 });
+      }
+
       // B.1 NOTIFICACIÓN DE RECHAZO (Brevo)
       if (brevoApiKey) {
-        // Usamos la plantilla centralizada
+        // Pasamos el motivo a la plantilla
         const emailHtml = getRejectionEmail({
           patientName: turnoData.patientName,
-          serviceName: turnoData.serviceName
+          serviceName: turnoData.serviceName,
+          rejectionReason: rejectionReason 
         });
 
         await fetch('https://api.brevo.com/v3/smtp/email', {

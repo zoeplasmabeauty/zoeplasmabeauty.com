@@ -10,6 +10,8 @@
  * consistencia absoluta de marca en todas las comunicaciones.
  * Se añadieron las plantillas para notificar Reprogramaciones y 
  * Cancelaciones manuales con notas personalizadas.
+ * La plantilla de Rechazo de Triage (getRejectionEmail) incluye
+ * el motivo médico redactado por el administrador y un botón de contacto directo a WhatsApp.
  */
 
 // ============================================================================
@@ -230,15 +232,23 @@ export const getApprovalEmail = ({
 // ============================================================================
 // 4. PLANTILLA: RECHAZO MÉDICO DE TRIAGE (Fase 3 - Paciente)
 // ============================================================================
+// CONTRATO ESTRICTO: Se añade el motivo de rechazo enviado por el Administrador.
 interface RejectionEmailProps {
   patientName: string;
   serviceName: string;
+  rejectionReason: string; // Campo obligatorio
 }
 
 export const getRejectionEmail = ({
   patientName,
-  serviceName
+  serviceName,
+  rejectionReason // Extraemos la variable
 }: RejectionEmailProps): string => {
+  
+  // Preparamos el mensaje para WhatsApp codificando los espacios y caracteres especiales
+  const waMessage = encodeURIComponent(`Hola equipo de Zoe Plasma Beauty. Soy ${patientName}, me comunico porque he recibido un correo sobre mi turno para ${serviceName} y quisiera hacer una consulta.`);
+  const waLink = `https://wa.me/5491133850211?text=${waMessage}`;
+
   return `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: ${THEME.bgPage}; padding: 40px 20px; color: ${THEME.textDark};">
       <div style="max-width: 550px; margin: 0 auto; background-color: ${THEME.bgCard}; border-radius: 16px; overflow: hidden; border: 1px solid ${THEME.border};">
@@ -248,21 +258,29 @@ export const getRejectionEmail = ({
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Nuestro equipo médico ha evaluado cuidadosamente tu Ficha Clínica.
+            Nuestro equipo de especialistas ha evaluado cuidadosamente tu Ficha Clínica. Priorizando siempre tu salud y seguridad, hemos determinado que en este momento <strong>no es seguro proceder con el tratamiento de ${serviceName}</strong>.
           </p>
           
           <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
-            <p style="margin: 0; color: #b91c1c; font-size: 15px; line-height: 1.6;">
-              Priorizando siempre tu salud y seguridad, hemos determinado que en este momento <strong>no es seguro proceder con el tratamiento de ${serviceName}</strong> debido a las condiciones de salud o contraindicaciones indicadas en tu formulario.
+            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Motivo de la decisión médica:</p>
+            <p style="margin: 0; color: #b91c1c; font-size: 15px; line-height: 1.6; font-style: italic;">
+              "${rejectionReason}"
             </p>
           </div>
           
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Tu turno ha sido cancelado y no se ha realizado ningún cargo ni reserva.
+            Tu turno ha sido cancelado y no se ha realizado ningún cobro.
           </p>
-          <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Si consideras que hubo un error al llenar la ficha o deseas consultar cuándo podrías ser apto/a, por favor responde a este correo o escríbenos a nuestro WhatsApp oficial.
-          </p>
+          
+          <div style="margin: 40px 0; text-align: center; border-top: 1px dashed ${THEME.border}; padding-top: 30px;">
+            <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 14px; margin-bottom: 20px;">
+              Si consideras que hubo un error al llenar la ficha, si tus condiciones han cambiado, o si deseas consultar sobre otras alternativas aptas para ti, nuestro equipo está a tu entera disposición.
+            </p>
+            <a href="${waLink}" 
+               style="background-color: #25D366; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2);">
+              Contactar por WhatsApp
+            </a>
+          </div>
           
           ${FOOTER_HTML}
         </div>

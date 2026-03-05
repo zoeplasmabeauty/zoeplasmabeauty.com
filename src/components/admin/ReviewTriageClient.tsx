@@ -5,6 +5,8 @@
  * Renderizar el expediente clínico unificado de un paciente. 
  * Permite al administrador tomar la decisión de Aprobar (generando el cobro) 
  * o Rechazar (cancelando el turno) basándose en factores de riesgo médico.
+ * Rechazo Médico interactivo, permitiendo al administrador redactar el motivo
+ * específico por el cual el paciente no es apto.
  * * RESPONSABILIDADES:
  * 1. Formateo Condicional: Resaltar en rojo alertas médicas graves (Alergias, Enfermedades).
  * 2. Deserialización: Convertir el string JSON de contraindicaciones en una lista legible.
@@ -64,6 +66,10 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
   const [isProcessing, setIsProcessing] = useState<'idle' | 'approve' | 'reject'>('idle');
   const [error, setError] = useState('');
 
+  // ESTADOS DEL MODAL DE RECHAZO
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+
   // 1. FORMATEO DE DATOS
   const rawDate = parseISO(expediente.appointmentDate);
   const displayDate = format(rawDate, "EEEE d 'de' MMMM, yyyy", { locale: es });
@@ -78,25 +84,27 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
   }
 
   // 2. MOTOR DE DECISIÓN (Aprobar o Rechazar)
-  const handleDecision = async (action: 'approve' | 'reject') => {
-    // Confirmación de seguridad para evitar clics accidentales graves
-    const confirmMessage = action === 'approve' 
-      ? `¿Estás seguro de APROBAR a ${expediente.patientName}? Se le enviará el enlace de pago.`
-      : `¿Estás seguro de RECHAZAR a ${expediente.patientName}? Se cancelará el turno.`;
-      
-    if (!window.confirm(confirmMessage)) return;
+  // Añadimos reason como parámetro opcional para inyectarlo en el payload
+  const handleDecision = async (action: 'approve' | 'reject', reason?: string) => {
+    
+    // Si es aprobar, mantenemos el confirm original
+    if (action === 'approve') {
+      const confirmMessage = `¿Estás seguro de APROBAR a ${expediente.patientName}? Se le enviará el enlace de pago.`;
+      if (!window.confirm(confirmMessage)) return;
+    }
 
     setIsProcessing(action);
     setError('');
 
     try {
-      // Llamamos a la API maestra de procesamiento (La construiremos en el siguiente paso)
+      // Llamamos a la API maestra de procesamiento
       const res = await fetch('/api/admin/turnos/procesar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           appointmentId: expediente.appointmentId,
-          action: action
+          action: action,
+          rejectionReason: reason // Inyectamos el motivo (si existe) para que la API lo lea
         })
       });
 
@@ -112,7 +120,17 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
     } catch (err: any) {
       setError(err.message);
       setIsProcessing('idle');
+      setIsRejectModalOpen(false); // Cerramos el modal si hubo error para no bloquear la pantalla
     }
+  };
+
+  // Función puente para ejecutar el rechazo desde el Modal
+  const executeRejection = () => {
+    if (rejectionReason.trim().length < 10) {
+      alert("Por favor, escribe un motivo médico claro y detallado.");
+      return;
+    }
+    handleDecision('reject', rejectionReason.trim());
   };
 
   // 3. COMPONENTES VISUALES DE APOYO (UX Defensiva)
@@ -132,7 +150,7 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
 
   // 4. MOTOR GRÁFICO PRINCIPAL
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
       
       {/* CABECERA DEL EXPEDIENTE */}
       <div className="bg-stone-900 p-6 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -263,9 +281,12 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
         {/* ÁREA DE BOTONES DE DECISIÓN (Sticky al fondo o integrado abajo) */}
         <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row gap-4 justify-end">
           
-          {/* BOTÓN RECHAZAR */}
+          {/* BOTÓN RECHAZAR - Abre el modal */}
           <button
-            onClick={() => handleDecision('reject')}
+            onClick={() => {
+              setRejectionReason(''); // Limpiamos razón anterior
+              setIsRejectModalOpen(true);
+            }}
             disabled={isProcessing !== 'idle'}
             className={`px-8 py-4 rounded-xl font-bold transition-all
               ${isProcessing === 'reject' 
@@ -295,6 +316,58 @@ export default function ReviewTriageClient({ expediente }: { expediente: Expedie
         </div>
 
       </div>
+
+      {/* =========================================================
+          MODAL DE RECHAZO MÉDICO (Flota por encima de la ficha)
+          ========================================================= */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-3xl">🛑</span>
+              <h3 className="text-2xl font-bold text-red-700">Rechazo por Triage</h3>
+            </div>
+            
+            <p className="text-sm text-stone-600 mb-6 leading-relaxed">
+              Estás a punto de cancelar el turno de <strong>{expediente.patientName}</strong> debido a contraindicaciones médicas detectadas en su ficha. 
+              Por favor, detalla el motivo. Este mensaje será enviado al paciente por correo electrónico junto a un botón de WhatsApp para que te contacte si tiene dudas.
+            </p>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-stone-800 mb-2">Motivo Clínico del Rechazo:</label>
+              <textarea 
+                className="w-full border border-red-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-600 focus:ring-2 focus:ring-red-100 min-h-[120px] resize-none"
+                placeholder="Ej: Detectamos que estás bajo tratamiento con anticoagulantes. Por tu seguridad, no podemos realizar el procedimiento en este momento..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button 
+                onClick={() => setIsRejectModalOpen(false)}
+                disabled={isProcessing === 'reject'}
+                className="px-5 py-3 text-sm font-semibold text-stone-600 hover:bg-stone-100 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={executeRejection}
+                disabled={isProcessing === 'reject' || rejectionReason.trim().length < 10}
+                className={`px-6 py-3 text-sm font-bold text-white rounded-xl shadow-md transition-all
+                  ${isProcessing === 'reject' || rejectionReason.trim().length < 10 
+                    ? 'bg-red-300 cursor-not-allowed' 
+                    : 'bg-red-600 hover:bg-red-700 hover:shadow-lg transform hover:-translate-y-0.5'
+                  }`}
+              >
+                {isProcessing === 'reject' ? 'Procesando...' : 'Confirmar Rechazo y Enviar Correo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
