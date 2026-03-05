@@ -10,8 +10,9 @@
  * * RESPONSABILIDADES:
  * 1. Autenticación: Validar la sesión del administrador para evitar accesos no autorizados.
  * 2. Ruteo de Acción: Determinar si el payload exige una cancelación o una reprogramación.
- * 3. Actualización de Base de Datos: Modificar los registros en D1 asegurando la integridad.
- * 4. Notificaciones: Comunicar al paciente los cambios realizados.
+ * 3. Validación de Colisiones: Evitar el solapamiento de turnos durante reprogramaciones.
+ * 4. Actualización de Base de Datos: Modificar los registros en D1 asegurando la integridad.
+ * 5. Notificaciones: Comunicar al paciente los cambios realizados.
  */
 
 import { NextResponse } from 'next/server';
@@ -20,7 +21,10 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../../../db';
 // Importamos las tablas patients y services para hacer los cruces (JOIN)
 import { appointments, patients, services } from '../../../../../db/schema';
-import { eq } from 'drizzle-orm';
+// Importamos operadores adicionales para el radar de colisiones
+import { eq, and, gte, lt, inArray, ne } from 'drizzle-orm';
+// Importamos date-fns para la matemática de tiempo absoluta
+import { addMinutes, parseISO, isBefore, isAfter, format } from 'date-fns';
 
 // Importamos las funciones constructoras de los correos de modificación
 import { getCancellationEmail, getReprogrammingEmail } from '../../../../../lib/emailTemplates';
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
       patientName: patients.fullName,
       patientEmail: patients.email,
       serviceName: services.name,
+      serviceDuration: services.durationMinutes // Necesitamos saber cuánto dura para el radar
     })
     .from(appointments)
     .innerJoin(patients, eq(appointments.patientId, patients.id))
@@ -135,7 +140,7 @@ export async function POST(request: Request) {
     }
 
     // ============================================================================
-    // FLUJO B: REPROGRAMAR TURNO
+    // FLUJO B: REPROGRAMAR TURNO (CON RADAR DE COLISIONES)
     // ============================================================================
     if (action === 'reprogram') {
       console.log(`🔄 [API MODIFICAR] Reprogramando turno ID: ${appointmentId}`);
@@ -143,6 +148,63 @@ export async function POST(request: Request) {
       if (!newDateISO) {
         return NextResponse.json({ error: "Falta la nueva fecha y hora para reprogramar." }, { status: 400 });
       }
+
+      // --------------------------------------------------------------------------
+      // RADAR DE COLISIONES: Prevenir solapamiento de agenda por el administrador
+      // --------------------------------------------------------------------------
+      const proposedStartDate = parseISO(newDateISO);
+      const proposedDuration = customDuration || turnoData.serviceDuration;
+      const proposedEndDate = addMinutes(proposedStartDate, proposedDuration);
+
+      // Extraemos la fecha base (YYYY-MM-DD) para buscar turnos en ese mismo día
+      const dateParam = format(proposedStartDate, 'yyyy-MM-dd');
+      
+      // Límites del día propuesto usando Matemática Absoluta (-03:00)
+      const startOfDayUTC = new Date(`${dateParam}T00:00:00.000-03:00`);
+      const endOfDayUTC = new Date(`${dateParam}T23:59:59.999-03:00`);
+
+      // Buscamos todos los turnos activos en ese día (EXCEPTO el turno actual que estamos moviendo)
+      const turnosExistentes = await db.select({
+        id: appointments.id,
+        fechaInicio: appointments.appointmentDate,
+        duracion: services.durationMinutes,
+        duracionPersonalizada: appointments.customDurationMinutes 
+      })
+      .from(appointments)
+      .innerJoin(services, eq(appointments.serviceId, services.id))
+      .where(
+        and(
+          gte(appointments.appointmentDate, startOfDayUTC.toISOString()),
+          lt(appointments.appointmentDate, endOfDayUTC.toISOString()),
+          ne(appointments.id, appointmentId), // No compararse contra sí mismo
+          inArray(appointments.status, [
+            'awaiting_triage', 
+            'under_review', 
+            'approved_unpaid', 
+            'confirmed', 
+            'completed'
+          ])
+        )
+      );
+
+      // Verificamos si hay solapamiento (Phase Cancellation)
+      let hayColision = false;
+      for (const turno of turnosExistentes) {
+        const turnoInicio = parseISO(turno.fechaInicio);
+        const turnoFin = addMinutes(turnoInicio, turno.duracionPersonalizada || turno.duracion);
+
+        // La regla de oro del solapamiento
+        if (isBefore(proposedStartDate, turnoFin) && isAfter(proposedEndDate, turnoInicio)) {
+          hayColision = true;
+          break;
+        }
+      }
+
+      if (hayColision) {
+        console.log("🛑 [API MODIFICAR] Bloqueo de colisión activado. Turno no reprogramado.");
+        return NextResponse.json({ error: "El horario seleccionado ya está ocupado por otro paciente. Por favor, elige un horario diferente." }, { status: 409 });
+      }
+      // --------------------------------------------------------------------------
 
       // B.1 Actualizamos la fecha y, si se proporcionó, la duración personalizada
       // Si customDuration es null, la base de datos usará la duración estándar del servicio

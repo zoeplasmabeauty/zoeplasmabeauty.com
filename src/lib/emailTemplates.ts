@@ -139,7 +139,7 @@ export const getBookingConfirmationEmail = ({
             
           </div>
           <p style="color: ${THEME.textMuted}; font-size: 14px; margin-top: 30px; text-align: center; font-style: italic;">
-            Seguir estas indicaciones permite una mejor recuperación y optimiza los resultados. Si tienes alguna duda, consúltanos vía WhatsApp al <strong>${phone}</strong>.
+            Seguir estas indicaciones permite una mejor recuperación y optimiza los resultados. Si tienes alguna duda, consúltanos vía WhatsApp al <a href="https://wa.me/5491133850211"><strong>+5491133850211</strong></a>
           </p>
           
           ${FOOTER_HTML}
@@ -259,7 +259,7 @@ export const getApprovalEmail = ({
           
           <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 15px; border-radius: 8px; margin: 25px 0; text-align: center;">
             <p style="margin: 0; color: #065f46; font-size: 14px;">
-              El día de tu turno deberás abonar en la clínica el saldo restante de:<br>
+              El día de tu turno deberás abonar en Zoe Plasma Beauty el saldo restante de:<br>
               <strong style="font-size: 18px; display: block; margin-top: 5px;">$${saldoRestante}</strong>
             </p>
           </div>
@@ -382,7 +382,7 @@ export const getCancellationEmail = ({
           </div>
           
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Si necesitas reprogramar tu cita o tienes alguna consulta adicional sobre este aviso, no dudes en contactarnos directamente por WhatsApp.
+            Si necesitas reprogramar tu turno o tienes alguna consulta adicional sobre este aviso, no dudes en contactarnos directamente por WhatsApp.
           </p>
           
           ${FOOTER_HTML}
@@ -415,7 +415,7 @@ export const getReprogrammingEmail = ({
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Te confirmamos que el horario de tu cita ha sido modificado exitosamente.
+            Te confirmamos que el horario de tu turno ha sido modificado exitosamente.
           </p>
           
           <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
