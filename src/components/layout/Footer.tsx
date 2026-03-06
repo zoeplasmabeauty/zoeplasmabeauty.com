@@ -41,7 +41,7 @@ export default function Footer() {
               className="group mb-6 inline-block" 
             >
               <span className="text-2xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
-                Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
+                Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span> Beauty
               </span>
             </a>
 

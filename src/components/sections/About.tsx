@@ -155,7 +155,7 @@ export default function About() {
               El paso del tiempo, la flacidez y las imperfecciones cutáneas pueden afectar cómo nos sentimos con nuestra piel.
             </p>
             <p className="mb-8 text-lg font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-              La tecnología de plasma nos permite sublimar tejidos de forma controlada, ofreciendo alternativas reales a procedimientos quirúrgicos, con menor riesgo y resultados excepcionales.
+              La tecnología de plasma Fibroblast nos permite sublimar tejidos de forma controlada, ofreciendo alternativas reales a procedimientos quirúrgicos, con menor riesgo y resultados excepcionales.
             </p>
             
             {/* Contenedor del Contador Animado */}

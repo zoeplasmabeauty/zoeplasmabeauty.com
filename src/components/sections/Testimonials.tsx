@@ -55,8 +55,8 @@ export default function Testimonials() {
           </h2>
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
           <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-[var(--color-zoe-muted)]">
-            No te quedes con nuestra palabra. Escucha las historias de quienes ya han 
-            transformado su piel con la tecnología Zoe Plasma.
+            Cada testimonio refleja una experiencia real. Personas que confiaron en nuestros 
+            protocolos y hoy disfrutan de una piel más firme, renovada y saludable
           </p>
         </div>
 

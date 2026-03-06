@@ -48,7 +48,7 @@ export default function Navbar() {
             Al hacer clic, el usuario siempre vuelve arriba. */}
         <Link href="/#inicio" className="group flex items-center gap-2">
           <span className="text-xl font-extrabold tracking-tighter text-[var(--color-zoe-dark)] transition-colors group-hover:text-[var(--color-zoe-blue)]">
-            Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span>
+            Zoe <span className="text-[var(--color-zoe-blue)]">plasma</span> Beauty
           </span>
         </Link>
 

@@ -68,8 +68,8 @@ export default function Gallery() {
           </h2>
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
           <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-[var(--color-zoe-muted)]">
-            Resultados reales en pacientes reales. La precisión de nuestros equipos 
-            electrónicos se traduce en transformaciones visibles y estéticas.
+            Resultados reales en pacientes reales. Cada resultado refleja la aplicación 
+            de protocolos personalizados con tecnologías regenerativas orientadas a mejorar la calidad, firmeza y apariencia de la piel.
           </p>
         </div>
 

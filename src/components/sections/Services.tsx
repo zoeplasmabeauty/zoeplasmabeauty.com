@@ -86,21 +86,21 @@ export default function Services() {
     },
     {
       title: "Skin Regeneration y Tratamientos Complementarios",
-      description: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast.",
+      description: "Tratamientos diseñados para potenciar los resultados del Plasma Fibroblast.",
       duration: "Aprox. 2 hrs", // Duración sincronizada con la base de datos
       tag: "Complementario",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
       extended: {
-        fullDescription: "Protocolos personalizados que preparan, regeneran y potencian la piel antes o después del Plasma Fibroblast. Resultado: mejora de textura, luminosidad y calidad de piel.",
+        fullDescription: "Tratamientos diseñados para potenciar los resultados del Plasma Fibroblast y favorecer una regeneración cutánea más completa",
         result: "Mejora de textura, luminosidad y calidad de piel",
         // INYECCIÓN DE PROPIEDAD ESPECIAL: 
         // Cambia el título "Zonas a mejorar" por "Tratamientos complementarios" en el Modal
-        benefitsTitle: "Tratamientos complementarios", 
+        benefitsTitle: "Opciones de tratamientos", 
         benefits: [
           "Dermapen",
-          "Dermaplaning",
-          "Peeling de algas",
-          "Exosomas regenerativos"
+          "Peelings químicos y biológicos",
+          "Exosomas",
+          "PDRN"
         ],
         priceTable: [
           { type: "2 horas", cost: "Precio previa evaluación" }
