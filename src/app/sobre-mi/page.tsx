@@ -48,7 +48,7 @@ export default function SobreMiPage() {
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[var(--color-zoe-light)]">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?rel=0`}
+              src={`https://www.youtube.com/embed/xTRNpzc4qgQ?rel=0`}
               title="Conoce mi historia - Zoe Plasma Beauty"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
