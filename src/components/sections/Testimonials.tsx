@@ -21,19 +21,19 @@ export default function Testimonials() {
   // la URL debe tener el formato "/embed/ID_DEL_VIDEO", NO el formato estándar de YouTube.
   const videoTestimonials = [
     {
-      patientName: "María F.",
-      treatment: "Blefaroplastia",
+      patientName: "Paciente.",
+      treatment: "Plasma Fibroblast",
       // Marcador de posición. Reemplaza "TU_ID_AQUI_1" por el ID real de tu Short (ej. "aBcDeFgHiJ")
       youtubeEmbedUrl: "https://www.youtube.com/embed/Wv1N7nv_lBE?rel=0&modestbranding=1",
     },
     {
-      patientName: "Laura G.",
-      treatment: "Lifting Facial",
+      patientName: "Paciente.",
+      treatment: "Plasma Fibroblast",
       youtubeEmbedUrl: "https://www.youtube.com/embed/Wv1N7nv_lBE?rel=0&modestbranding=1",
     },
     {
-      patientName: "Sofía M.",
-      treatment: "Remoción de Manchas",
+      patientName: "Paciente.",
+      treatment: "Plasma Fibroblast",
       youtubeEmbedUrl: "https://www.youtube.com/embed/Wv1N7nv_lBE?rel=0&modestbranding=1",
     }
   ];
