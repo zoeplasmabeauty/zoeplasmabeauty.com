@@ -46,8 +46,8 @@ export default function Footer() {
             </a>
 
             <p className="mb-6 text-sm font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-              Vanguardia en tratamientos estéticos no invasivos. 
-              Elevamos tu belleza natural con tecnología electrónica de precisión y un enfoque seguro.
+              Vanguardia en tratamientos estéticos no invasivos.
+              Elevamos tu belleza natural mediante tecnología de Plasma Fibroblast y un enfoque seguro
             </p>
             
             {/* REDES SOCIALES (Ecosistema Digital Completo) */}

@@ -33,8 +33,8 @@ export default function Contact() {
           </h2>
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-[var(--color-zoe-blue)]"></div>
           <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-[var(--color-zoe-muted)]">
-            ¿Tienes dudas sobre qué tratamiento de plasma es ideal para ti? 
-            Nuestro equipo de especialistas está listo para asesorarte sin compromiso.
+            ¿Te gustaría saber qué tratamiento de Plasma Fibroblast es ideal para tu piel? 
+            Estamos aquí para asesorarte y ayudarte a encontrar el protocolo más adecuado según tus necesidades.
           </p>
         </div>
 
@@ -200,14 +200,16 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-[var(--color-zoe-dark)]">Nuestra Clínica</h3>
+                  <h3 className="text-2xl font-bold text-[var(--color-zoe-dark)]">Nuestro espacio</h3>
                   <p className="text-sm font-bold text-[var(--color-zoe-muted)]">Buenos Aires, Argentina</p>
                 </div>
               </div>
               
               <p className="mb-8 text-sm font-medium leading-relaxed text-[var(--color-zoe-muted)]">
-                Operamos en un entorno estéril y acondicionado con equipos de vanguardia 
-                para garantizar tu seguridad y confort durante cada sesión de plasma.
+                Trabajamos en un espacio profesional, acondicionado para brindar tratamientos 
+                estéticos con altos estándares de higiene, seguridad y confort. Cada sesión está 
+                pensada para que vivas una experiencia de cuidado personalizada y en un ambiente cálido y relajado
+.
               </p>
 
               {/* Tabla de Horarios */}
