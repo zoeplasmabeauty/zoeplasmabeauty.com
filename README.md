@@ -97,4 +97,4 @@ Diseñado, desarrollado y desplegado para alto rendimiento por peinadoso.
 
 * Filosofía: "Objetividad Radical" y Experiencia de Usuario sin fricciones.
 
-**© 2026 Zoe Plasma Beauty - Todos los derechos reservados.**
+**© 2026 Zoe Plasma Beauty - Todos los derechos reservados.** 
