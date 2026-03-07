@@ -91,10 +91,10 @@ La aplicación estará corriendo en `http://localhost:3000`.
 
 ## 👨‍💻 Autor y Desarrollo
 
-Diseñado, desarrollado y desplegado para alto rendimiento por peinadoso.
+Diseñado, desarrollado y desplegado para alto rendimiento por `peinadoso`.
 
 * Arquitectura: Serverless & Edge Computing.
 
-* Filosofía: "Objetividad Radical" y Experiencia de Usuario sin fricciones.
+* Filosofía: UX con la minima fricción posible.
 
 **© 2026 Zoe Plasma Beauty - Todos los derechos reservados.** 
