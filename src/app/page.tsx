@@ -11,6 +11,7 @@ import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
 import Services from "@/components/sections/Services";
+import FAQ from "@/components/sections/FAQ"; 
 import BookingPlaceholder from "@/components/sections/BookingPlaceholder";
 import Gallery from "@/components/sections/Gallery";
 import Testimonials from "@/components/sections/Testimonials";
@@ -25,6 +26,7 @@ export default function Home() {
         <Hero />
         <About />
         <Services />
+        <FAQ />
         <BookingPlaceholder />
         <Gallery />
         <Testimonials />

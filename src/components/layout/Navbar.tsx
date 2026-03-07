@@ -31,6 +31,7 @@ export default function Navbar() {
     { name: "Sobre Mí", href: "/sobre-mi" }, 
     { name: "Conócenos", href: "/#conocenos" },
     { name: "Servicios", href: "/#servicios" },
+    { name: "FAQ", href: "/#preguntas-frecuentes" }, 
     { name: "Antes y Después", href: "/#galeria" },
     { name: "Testimonios", href: "/#testimonios" },
     { name: "Contacto", href: "/#contacto" },
