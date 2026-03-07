@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1772236929192,
+      "tag": "0000_colorful_mindworm",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772237989540,
+      "tag": "0001_rapid_scream",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772287524513,
+      "tag": "0002_big_bruce_banner",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1772663585095,
+      "tag": "0003_magical_rattler",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1772745927692,
+      "tag": "0004_magical_prism",
+      "breakpoints": true
+    }
+  ]
+}
