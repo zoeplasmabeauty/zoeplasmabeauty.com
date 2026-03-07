@@ -44,7 +44,7 @@ export default function SobreMiPage() {
               <span className="font-bold text-[var(--color-zoe-blue)]">rejuvenecimiento consciente.</span>
             </h1>
             <p className="text-lg md:text-xl text-[var(--color-zoe-muted)] max-w-2xl mx-auto leading-relaxed mt-6">
-              Mi nombre es <strong className="text-[var(--color-zoe-dark)]">Zoe Pérez</strong>, Especialista en regeneración cutánea y rejuvenecimiento consciente. Recibida como cosmiatra superior con diplomado en Ciencias Estéticas, especializada en <strong className="text-[var(--color-zoe-dark)]">Plasma Fibroblast</strong> y tratamientos de regeneración cutánea.
+              Mi nombre es <strong className="text-[var(--color-zoe-dark)]">Zoe Pérez</strong>, Especialista en regeneración cutánea y rejuvenecimiento consciente. Recibida como cosmiatra superior con diplomado en Ciencias Estéticas, especializada en <strong className="text-[var(--color-zoe-dark)]">Plasma Fibroblast</strong> y tratamientos para el cuidado de la piel.
             </p>
           </div>
         </section>
@@ -148,7 +148,7 @@ export default function SobreMiPage() {
                 <div className="text-3xl mb-4">🛡️</div>
                 <h3 className="text-xl font-bold text-white mb-3">Abordaje Seguro</h3>
                 <p className="text-sm leading-relaxed">
-                  Seguridad y respeto por la biología de la piel. Priorizamos técnicas no invasivas que mejoran la flacidez y textura sin agredir la identidad de tu rostro.
+                  Priorizamos técnicas no invasivas que respetan la biología de la piel, ayudando a mejorar la flacidez, la textura y la apariencia de arrugas, sin alterar la identidad natural de tu rostro.
                 </p>
               </div>
 
