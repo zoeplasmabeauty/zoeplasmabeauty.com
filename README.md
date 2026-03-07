@@ -91,7 +91,7 @@ La aplicación estará corriendo en `http://localhost:3000`.
 
 ## 👨‍💻 Autor y Desarrollo
 
-Diseñado, desarrollado y desplegado para alto rendimiento por Ronny Alejandro.
+Diseñado, desarrollado y desplegado para alto rendimiento por peinadoso.
 
 * Arquitectura: Serverless & Edge Computing.
 
