@@ -98,4 +98,4 @@ INSERT INTO services (id, name, duration_minutes, price, is_active) VALUES
 ('fibro-facial-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area facial', 120, 220000, true),
 ('estrias-unica-uuid', 'Tratamiento de estrias con plasma fibroblast', 240, 350000, true),
 ('lesiones-unica-uuid', 'Eliminacion de lesiones benignas', 120, 280000, true),
-('skin-unica-uuid', 'Skin regeneration y tratamientos complementarios', 90, 0, true);
+('skin-unica-uuid', 'Skin regeneration y tratamientos complementarios', 120, 30000, true);
