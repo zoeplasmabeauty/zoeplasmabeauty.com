@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧬 Zoe Plasma Beauty - Sistema de Gestión de turnos y Plataforma Web
 
-## Getting Started
+Plataforma integral (Landing Page de alta conversión + Motor de Reservas Inteligente + Panel de Administración clínico) desarrollada para el centro de estética avanzada Zoe Plasma Beauty en Buenos Aires, Argentina.
 
-First, run the development server:
+Construida sobre una **Arquitectura Serverless (Edge Computing)**, garantizando tiempos de carga de milisegundos, alta disponibilidad y cero mantenimiento de servidores tradicionales.
+
+---
+
+## 🚀 Tecnologías y Ecosistema (Tech Stack)
+
+Este proyecto está orquestado utilizando las mejores herramientas del mercado actual para garantizar escalabilidad, velocidad y seguridad:
+
+### 💻 Core & Hosting
+* **[Next.js (React)](https://nextjs.org/)**: Framework principal (App Router).
+* **[Cloudflare Pages](https://pages.cloudflare.com/)**: Despliegue global en el Edge.
+* **[GitHub](https://github.com/)**: Control de versiones y CI/CD automatizado (Despliegue con cada `git push`).
+
+### 🗄️ Base de Datos & ORM
+* **[Cloudflare D1](https://developers.cloudflare.com/d1/)**: Base de datos SQLite nativa en el Edge.
+* **[Drizzle ORM](https://orm.drizzle.team/)**: Tipado estricto y ejecución rápida de consultas SQL.
+
+### 🔌 Integraciones de Terceros (APIs)
+* **[Mercado Pago](https://www.mercadopago.com.ar/developers/)**: Pasarela para el cobro automatizado de señas y reservas.
+* **[Brevo (Ex Sendinblue)](https://www.brevo.com/)**: Motor SMTP para correos transaccionales (Confirmaciones, Triage médico, Alertas).
+* **[cron-job.org](https://cron-job.org/)**: Servicio externo para "despertar" el endpoint seguro y enviar recordatorios automáticos de turnos diariamente.
+* **[Cloudinary](https://cloudinary.com/)**: CDN para optimización y entrega ultrarrápida de imágenes (Antes y Después, Galería).
+* **[YouTube API](https://developers.google.com/youtube/)**: Integración (embeds) para testimonios en video sin sobrecargar el peso de la web.
+
+---
+
+## ⚙️ Funcionalidades Principales (Key Features)
+
+1. **Motor de Reservas "Radar de Colisiones":**
+   * Cálculo matemático en tiempo real para evitar solapamiento de turnos.
+   * Zonas horarias forzadas (`America/Argentina/Buenos_Aires`) para evitar desfases de servidor.
+2. **Flujo de Triage Médico (Máquina de Estados):**
+   * Los pacientes deben llenar una Ficha Clínica rigurosa antes de poder pagar.
+   * El turno pasa por estados: `awaiting_triage` ➔ `under_review` ➔ `approved_unpaid` ➔ `confirmed`.
+3. **Panel de Administración Blindado:**
+   * Dashboard privado protegido por JWT y Cookies de sesión HTTP-Only.
+   * Capacidad de cancelar (con envío de motivos por correo) y reprogramar (ajustando la duración dinámica del turno).
+4. **Gestor de Cierres de Agenda (Vacaciones):**
+   * Bloqueo global de fechas desde la base de datos sin necesidad de tocar el código.
+5. **Motor CRON (Recordatorios el mismo día):**
+   * Endpoint protegido por `CRON_SECRET` que dispara correos con saldo restante y ubicación en Google Maps a las 8:00 AM.
+
+---
+
+## 🛠️ Instalación y Entorno de Desarrollo Local
+
+Si necesitas clonar este repositorio y correrlo en tu máquina local, sigue estos pasos:
+
+### 1. Clonar el repositorio
+```bash
+git clone [https://github.com/TuUsuario/zoe-plasma-beauty.git](https://github.com/TuUsuario/zoe-plasma-beauty.git)
+cd zoe-plasma-beauty
+npm install 
+
+### 2. Configurar Variables de Entorno
+Crea un archivo .dev.vars en la raíz del proyecto y añade las siguientes claves (solicítalas al administrador):
+
+# Seguridad
+SECRET_ADMIN_PASSWORD="Contraseña_maestra_admin"
+CRON_SECRET="secreto_para_ejecutar_cron_jobs"
+
+# APIs de Terceros
+BREVO_API_KEY="xkeysib-..."
+MERCADOPAGO_ACCESS_TOKEN="APP_USR-..."
+
+### 3. Base de Datos Local (D1)
+Genera y aplica las migraciones a tu entorno local SQLite:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+npx drizzle-kit generate
+npx wrangler d1 migrations apply zoe-plasma-db --local
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. Iniciar el Servidor
+Dado que utilizamos las APIs de Cloudflare localmente, el proyecto se levanta con Wrangler:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx next dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+La aplicación estará corriendo en http://localhost:3000.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+👨‍💻 Autor y Desarrollo
+Diseñado, desarrollado y desplegado para alto rendimiento por Ronny Alejandro.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Arquitectura: Serverless & Edge Computing.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Filosofía: "Objetividad Radical" y Experiencia de Usuario sin fricciones.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© 2026 Zoe Plasma Beauty - Todos los derechos reservados.
