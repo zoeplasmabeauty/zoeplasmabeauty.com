@@ -134,13 +134,16 @@ export default function Footer() {
                 <a href="#servicios" className="transition-colors hover:text-[var(--color-zoe-blue)]">Tratamientos</a>
               </li>
               <li>
-                <a href="#preguntas-frecuentes" className="transition-colors hover:text-[var(--color-zoe-blue)]">Preguntas Frecuentes</a>
-              </li>
-              <li>
                 <a href="#galeria" className="transition-colors hover:text-[var(--color-zoe-blue)]">Antes y Después</a>
               </li>
               <li>
                 <a href="#testimonios" className="transition-colors hover:text-[var(--color-zoe-blue)]">Testimonios</a>
+              </li>
+              <li>
+                <a href="#contacto" className="transition-colors hover:text-[var(--color-zoe-blue)]">Contacto</a>
+              </li>
+              <li>
+                <a href="#preguntas-frecuentes" className="transition-colors hover:text-[var(--color-zoe-blue)]">Preguntas Frecuentes</a>
               </li>
               <li>
                 <a href="#agendar" className="font-bold text-[var(--color-zoe-blue)] transition-colors hover:text-[#4375af]">Agendar Turno</a>

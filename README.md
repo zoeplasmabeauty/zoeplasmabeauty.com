@@ -82,7 +82,7 @@ npx wrangler d1 migrations apply zoe-plasma-db --local
 Dado que utilizamos las APIs de Cloudflare localmente, el proyecto se levanta con Wrangler:
 
 ```bash
-npx next dev
+npm run dev
 ```
 
 La aplicación estará corriendo en `http://localhost:3000`.

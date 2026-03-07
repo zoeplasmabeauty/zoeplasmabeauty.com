@@ -35,7 +35,6 @@ export default function FAQ() {
           <ul className="list-disc pl-5 space-y-1 mt-2 text-[var(--color-zoe-muted)]">
             <li>Evitar manipular o retirar las costras.</li>
             <li>Evitar la exposición directa al sol durante el proceso de recuperación.</li>
-            {/* Nota: Autocompleté la oración cortada para mantener la coherencia clínica */}
             <li>Utilizar protector solar de forma estricta y constante.</li>
           </ul>
         </>
@@ -47,7 +46,6 @@ export default function FAQ() {
     },
     {
       question: "¿El tratamiento es doloroso?",
-      // Nota: Autocompleté la oración cortada
       answer: "Para mayor comodidad del paciente utilizamos anestesia tópica de alta calidad, formulada para procedimientos estéticos avanzados. A diferencia de anestesias convencionales utilizadas en tratamientos superficiales, esta formulación permite lograr una mayor profundidad y duración del efecto anestésico, lo que ayuda a reducir significativamente las molestias durante el procedimiento. Gracias a esto, la mayoría de los pacientes describe la experiencia como muy tolerable."
     },
     {
@@ -61,6 +59,31 @@ export default function FAQ() {
             <li>Una coloración rosada, más clara o tono café claro en la piel una vez que las costras se desprenden.</li>
           </ul>
           <p>Estas manifestaciones son temporales y forman parte del proceso natural de reparación cutánea. Para favorecer una correcta recuperación, se brindan indicaciones personalizadas de cuidado que el paciente debe seguir durante los días posteriores al tratamiento.</p>
+        </>
+      )
+    },
+    {
+      question: "¿Puedo realizar el tratamiento en cualquier época del año?",
+      answer: "Sí, aunque en algunos casos se recomienda evitar la exposición solar intensa. Por eso es importante seguir las indicaciones profesionales y utilizar protector solar durante todo el proceso de recuperación."
+    },
+    {
+      question: "¿El Plasma Fibroblast reemplaza una cirugía?",
+      answer: "El Plasma Fibroblast no reemplaza procedimientos quirúrgicos, pero puede ser una excelente alternativa estética para mejorar la apariencia de la piel en casos de flacidez , arrugas, cicatrices y estrías."
+    },
+    {
+      question: "¿Cuánto tiempo duran los resultados?",
+      answer: "Los resultados pueden mantenerse por largos períodos, ya que el tratamiento estimula procesos naturales de regeneración de la piel. Se estima entre 1 a 3 años, sin embargo, la duración dependerá de factores como la edad, el estilo de vida, el cuidado posterior y la calidad de la piel."
+    },
+    {
+      question: "¿Cuántas sesiones se necesitan?",
+      answer: "La cantidad de sesiones depende del estado de la piel, la zona a tratar y los objetivos estéticos del paciente. En algunos casos puede realizarse una sola sesión, mientras que en otros se recomiendan protocolos complementarios para potenciar los resultados."
+    },
+    {
+      question: "¿Cuándo se ven los resultados?",
+      answer: (
+        <>
+          <p className="mb-0">Los resultados del tratamiento con Plasma Fibroblast se desarrollan de forma progresiva, ya que estimula los procesos naturales de regeneración de la piel. Después del procedimiento puede observarse una retracción inicial de la piel, mientras que las mejoras continúan desarrollándose durante las semanas siguientes.</p>
+          <p>El resultado más visible suele apreciarse entre 4 y 12 semanas, cuando la piel completa su proceso de producción y reorganización de colágeno</p>
         </>
       )
     }

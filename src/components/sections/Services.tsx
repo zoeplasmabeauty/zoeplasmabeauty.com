@@ -29,7 +29,7 @@ export default function Services() {
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg",
       // Datos extendidos para el Modal (Drawer)
       extended: {
-        fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno. Resultado: piel más firme, lisa y rejuvenecida de forma natural.",
+        fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno.",
         result: "Piel más firme, lisa y rejuvenecida de forma natural.",
         benefits: [
           "Area orbital",
@@ -51,7 +51,7 @@ export default function Services() {
       tag: "Alta Demanda",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg",
       extended: {
-        fullDescription: "Procedimiento regenerativo que mejora visiblemente la textura, profundidad y color de las estrías estimulando la reparación cutánea. Resultado: piel más uniforme y regenerada.",
+        fullDescription: "Procedimiento regenerativo que mejora visiblemente la textura, profundidad y color de las estrías estimulando la reparación cutánea.",
         result: "Piel más uniforme y regenerada",
         benefits: [
           "Estrías nacaradas y vasculares",
@@ -71,7 +71,7 @@ export default function Services() {
       tag: "Rápido",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
       extended: {
-        fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. Resultado: piel más limpia y uniforme.",
+        fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. ",
         result: "Piel más limpia y uniforme",
         benefits: [
           "Acrocordones",
@@ -80,7 +80,7 @@ export default function Services() {
           "Manchas y lesiones benignas dérmicas"
         ],
         priceTable: [
-          { type: "Por área corporal | 2 horas", cost: "$280.000 ARS" }
+          { type: "Por área corporal o facial | 2 horas", cost: "$280.000 ARS" }
         ]
       }
     },
