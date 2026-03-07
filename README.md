@@ -54,11 +54,13 @@ Si necesitas clonar este repositorio y correrlo en tu máquina local, sigue esto
 ```bash
 git clone [https://github.com/TuUsuario/zoe-plasma-beauty.git](https://github.com/TuUsuario/zoe-plasma-beauty.git)
 cd zoe-plasma-beauty
-npm install 
+npm install
+```
 
 ### 2. Configurar Variables de Entorno
 Crea un archivo .dev.vars en la raíz del proyecto y añade las siguientes claves (solicítalas al administrador):
 
+```bash
 # Seguridad
 SECRET_ADMIN_PASSWORD="Contraseña_maestra_admin"
 CRON_SECRET="secreto_para_ejecutar_cron_jobs"
@@ -66,6 +68,7 @@ CRON_SECRET="secreto_para_ejecutar_cron_jobs"
 # APIs de Terceros
 BREVO_API_KEY="xkeysib-..."
 MERCADOPAGO_ACCESS_TOKEN="APP_USR-..."
+```
 
 ### 3. Base de Datos Local (D1)
 Genera y aplica las migraciones a tu entorno local SQLite:
@@ -73,12 +76,14 @@ Genera y aplica las migraciones a tu entorno local SQLite:
 ```bash
 npx drizzle-kit generate
 npx wrangler d1 migrations apply zoe-plasma-db --local
+```
 
 ### 4. Iniciar el Servidor
 Dado que utilizamos las APIs de Cloudflare localmente, el proyecto se levanta con Wrangler:
 
 ```bash
 npx next dev
+```
 
 La aplicación estará corriendo en http://localhost:3000.
 
