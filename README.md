@@ -85,15 +85,16 @@ Dado que utilizamos las APIs de Cloudflare localmente, el proyecto se levanta co
 npx next dev
 ```
 
-La aplicación estará corriendo en http://localhost:3000.
+La aplicación estará corriendo en `http://localhost:3000`.
 
 ---
 
-👨‍💻 Autor y Desarrollo
+## 👨‍💻 Autor y Desarrollo
+
 Diseñado, desarrollado y desplegado para alto rendimiento por Ronny Alejandro.
 
-Arquitectura: Serverless & Edge Computing.
+* Arquitectura: Serverless & Edge Computing.
 
-Filosofía: "Objetividad Radical" y Experiencia de Usuario sin fricciones.
+* Filosofía: "Objetividad Radical" y Experiencia de Usuario sin fricciones.
 
-© 2026 Zoe Plasma Beauty - Todos los derechos reservados.
+**© 2026 Zoe Plasma Beauty - Todos los derechos reservados.**
