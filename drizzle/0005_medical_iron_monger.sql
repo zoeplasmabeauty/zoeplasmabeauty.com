@@ -1,0 +1,1 @@
+ALTER TABLE `services` ADD `deposit` integer DEFAULT 50000 NOT NULL;

@@ -27,6 +27,8 @@ export default function Services() {
       duration: "Aprox. 2-4 hrs", // Generalized for the card front
       tag: "Más Popular", 
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg",
+      // INYECCIÓN CRÍTICA: Array con los IDs exactos de la base de datos que le pertenecen a esta tarjeta
+      dbIds: ["fibro-fullface-uuid", "fibro-corporal-uuid", "fibro-facial-uuid"],
       // Datos extendidos para el Modal (Drawer)
       extended: {
         fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno.",
@@ -50,6 +52,8 @@ export default function Services() {
       duration: "Aprox. 4 hrs",
       tag: "Alta Demanda",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210861/eliminacion-de-estr_C3_ADas-con-l_C3_A1ser-1540_bwxpjk.jpg",
+      // INYECCIÓN CRÍTICA: ID exacto en D1
+      dbIds: ["estrias-unica-uuid"],
       extended: {
         fullDescription: "Procedimiento regenerativo que mejora visiblemente la textura, profundidad y color de las estrías estimulando la reparación cutánea.",
         result: "Piel más uniforme y regenerada",
@@ -70,6 +74,8 @@ export default function Services() {
       duration: "Aprox. 2 hrs",
       tag: "Rápido",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
+      // INYECCIÓN CRÍTICA: ID exacto en D1
+      dbIds: ["lesiones-unica-uuid"],
       extended: {
         fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. ",
         result: "Piel más limpia y uniforme",
@@ -90,6 +96,8 @@ export default function Services() {
       duration: "Aprox. 2 hrs", // Duración sincronizada con la base de datos
       tag: "Complementario",
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210636/blefaroplastia-inferior-cr1_lozbnd.jpg",
+      // INYECCIÓN CRÍTICA: ID exacto en D1
+      dbIds: ["skin-unica-uuid"],
       extended: {
         fullDescription: "Tratamientos diseñados para potenciar los resultados del Plasma Fibroblast y favorecer una regeneración cutánea más completa",
         result: "Mejora de textura, luminosidad y calidad de piel",

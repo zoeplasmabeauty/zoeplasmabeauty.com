@@ -30,6 +30,7 @@ CREATE TABLE services (
   name TEXT NOT NULL,
   duration_minutes INTEGER NOT NULL,
   price INTEGER NOT NULL DEFAULT 0,
+  deposit INTEGER NOT NULL,
   is_active INTEGER NOT NULL DEFAULT true
 );
 
@@ -92,10 +93,10 @@ CREATE TABLE medical_records (
 -- ======================================================================
 -- PASO 3: INSERCIÓN DEL CATÁLOGO DE SERVICIOS
 -- ======================================================================
-INSERT INTO services (id, name, duration_minutes, price, is_active) VALUES 
-('fibro-fullface-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Full face', 240, 350000, true),
-('fibro-corporal-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area corporal', 240, 350000, true),
-('fibro-facial-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area facial', 120, 220000, true),
-('estrias-unica-uuid', 'Tratamiento de estrias con plasma fibroblast', 240, 350000, true),
-('lesiones-unica-uuid', 'Eliminacion de lesiones benignas', 120, 280000, true),
-('skin-unica-uuid', 'Skin regeneration y tratamientos complementarios', 120, 30000, true);
+INSERT INTO services (id, name, duration_minutes, price, deposit, is_active) VALUES 
+('fibro-fullface-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Full face', 240, 350000, 50000,true),
+('fibro-corporal-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area corporal', 240, 350000, 50000, true),
+('fibro-facial-uuid', 'Plasma Fibroblast Rejuvenecimiento sin cirugía - Por area facial', 120, 220000, 50000, true),
+('estrias-unica-uuid', 'Tratamiento de estrias con plasma fibroblast', 240, 350000, 50000, true),
+('lesiones-unica-uuid', 'Eliminacion de lesiones benignas', 120, 280000, 50000, true),
+('skin-unica-uuid', 'Skin regeneration y tratamientos complementarios', 120, 30000, 30000, true);

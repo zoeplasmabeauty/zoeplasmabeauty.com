@@ -11,15 +11,18 @@
  * y gestionar la interacción con ella del usuario. 
  * 2. Accesibilidad y Escape: Prevenir interacciones subyacentes montando un "backdrop"
  * visual negro, y manejar el scroll suave al cierre de lectura.
+ * 3. Consumo Dinámico Exacto: Leer la base de datos (D1) y filtrar los servicios 
+ * utilizando estrictamente sus IDs únicos definidos en el array 'dbIds'.
  * * NOTA ARQUITECTÓNICA CRÍTICA:
- * Como este componente maneja hooks ('useState'), requiere imperativamente
+ * Como este componente maneja hooks ('useState', 'useEffect'), requiere imperativamente
  * compilarse del lado del cliente ('use client') y no debe bloquear renderización inicial.
  */
 
 'use client'; 
 
 import Image from "next/image";
-import { useState } from "react";
+// INYECCIÓN: Agregamos useEffect para el consumo de la API
+import { useState, useEffect } from "react";
 
 // 1. CONTRATO DE INTERFAZ: 
 // Modelamos el tipo exacto para el array de servicios, garantizando el intellisense.
@@ -29,6 +32,8 @@ interface ServiceModel {
   duration: string;
   tag: string | null;
   imageUrl: string;
+  // INYECCIÓN CRÍTICA: Definimos el array de IDs únicos que conectará la UI con la base de datos
+  dbIds: string[]; 
   extended?: {
     fullDescription: string;
     result?: string; // Propiedad para aislar el "Resultado"
@@ -44,6 +49,50 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
   // 'isDrawerOpen' define si el panel lateral está oculto o a la vista.
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // ====================================================================
+  // 2.5 ESTADOS DE PRECIOS DINÁMICOS (Conexión con la Base de Datos)
+  // ====================================================================
+  // INYECCIÓN: Se cambia a un array para soportar múltiples sub-servicios (Ej: Plasma Fibroblast)
+  const [liveServices, setLiveServices] = useState<any[]>([]);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+
+  // EFECTO SECUNDARIO: "Lazy Fetching"
+  // Solo se dispara cuando el usuario decide abrir el modal de detalles
+  useEffect(() => {
+    const fetchLivePrices = async () => {
+      setIsLoadingPrice(true);
+      try {
+        // Consumimos el endpoint público que creaste previamente
+        const res = await fetch('/api/turnos/servicios');
+        if (res.ok) {
+          // Aserción de tipo inyectada para TypeScript
+          const data = (await res.json()) as any[];
+          
+          // LÓGICA DE MAPEO EXACTO:
+          // Le decimos al filtro:
+          // "Guarda solo aquellos servicios cuyo ID se encuentre dentro del array 'dbIds' de esta tarjeta".
+          // Esto garantiza una precisión del 100% y evita que se crucen servicios de otras categorías.
+          const matchedServices = data.filter((s: any) => 
+            service.dbIds && service.dbIds.includes(s.id)
+          );
+          
+          if (matchedServices.length > 0) {
+            setLiveServices(matchedServices);
+          }
+        }
+      } catch (error) {
+        console.error("Error al sincronizar precios en vivo:", error);
+      } finally {
+        setIsLoadingPrice(false);
+      }
+    };
+
+    // La condición de disparo evita peticiones a la BD si el modal está cerrado
+    if (isDrawerOpen) {
+      fetchLivePrices();
+    }
+  }, [isDrawerOpen, service.dbIds]); // Añadimos dbIds como dependencia de seguridad
+
   // 3. EVENTO DE POST-LECTURA (Auto-Scroll y Cierre)
   const handleAgendarClick = (e: React.MouseEvent) => {
     e.preventDefault(); 
@@ -57,6 +106,19 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
         section.scrollIntoView({ behavior: "smooth" });
       }
     }, 150); // Mínimo retardo para permitir la animación de cierre.
+  };
+
+  // ====================================================================
+  // INYECCIÓN DE LÓGICA: CONVERSOR DE MINUTOS A HORAS
+  // Esta función transforma el integer de la BD (ej: 120) en un texto limpio (ej: "2 horas").
+  // ====================================================================
+  const formatMinutesToHours = (minutes: number | undefined) => {
+    if (!minutes) return "A confirmar";
+    const hours = minutes / 60;
+    // Si la división es exacta (ej: 2) se muestra sin decimales. Si es (ej: 2.5) muestra un decimal.
+    const displayValue = Number.isInteger(hours) ? hours : hours.toFixed(1);
+    // Control de pluralidad
+    return `${displayValue} ${hours === 1 ? 'hora' : 'horas'}`;
   };
 
   return (
@@ -195,20 +257,49 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
                 </div>
               )}
 
-              {/* TABLA DE PRECIOS Y VARIACIONES (Renderizado Condicional) */}
-              {service.extended?.priceTable && service.extended.priceTable.length > 0 && (
-                <div className="mb-8">
-                  <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Tiempos y Precios</h4>
-                  <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
-                    {service.extended.priceTable.map((item, i) => (
+              {/* TABLA DE PRECIOS Y VARIACIONES (Dinámica / Renderizado Condicional) */}
+              {/* INYECCIÓN: Ahora la tabla lee de la base de datos o muestra un loading, con fallback a estático */}
+              <div className="mb-8">
+                <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">Valores del Tratamiento</h4>
+                <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                  {isLoadingPrice ? (
+                    <div className="flex justify-center py-4">
+                      <span className="text-sm font-medium text-[var(--color-zoe-blue)] animate-pulse">
+                        Consultando valores actualizados...
+                      </span>
+                    </div>
+                  ) : liveServices.length > 0 ? (
+                    // Mostrar todos los valores reales mapeados desde la Base de Datos
+                    <div className="flex flex-col gap-2">
+                      {liveServices.map((ls, i) => (
+                        <div key={i} className="flex flex-col py-2 border-b border-gray-200 last:border-0 pb-3">
+                          <div className="flex justify-between items-start mb-1 gap-4">
+                            <span className="text-sm text-gray-800 font-bold leading-tight">{ls.name}</span>
+                            <span className="font-black text-[var(--color-zoe-blue)] text-lg whitespace-nowrap">
+                              ${ls.price.toLocaleString('es-AR')}
+                            </span>
+                          </div>
+                          {/* INYECCIÓN: Duración extraída de la BD en horas */}
+                          <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-1">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Duración estimada: {formatMinutesToHours(ls.durationMinutes || ls.duration_minutes)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // FALLBACK DE SEGURIDAD: Si falla la red, mostramos la tabla estática original
+                    service.extended?.priceTable?.map((item, i) => (
                       <div key={i} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
                         <span className="text-sm text-gray-600 pr-4">{item.type}</span>
                         <span className="font-bold text-[var(--color-zoe-blue)] whitespace-nowrap">{item.cost}</span>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* ====================================================================
                   NOTA ESPECIAL / ACLARACIÓN (Inyección para Evaluaciones Médicas)

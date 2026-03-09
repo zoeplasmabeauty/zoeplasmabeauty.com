@@ -24,7 +24,6 @@ export const runtime = 'edge';
 
 // Constantes estáticas
 const MAPS_LINK = "https://maps.app.goo.gl/SLYdt74rvRprihxL6";
-const COSTO_RESERVA_BASE = 50000;
 
 export async function GET(request: Request) {
   console.log("\n==================================================");
@@ -80,7 +79,8 @@ export async function GET(request: Request) {
       patientName: patients.fullName,
       patientEmail: patients.email,
       serviceName: services.name,
-      servicePrice: services.price
+      servicePrice: services.price,
+      serviceDeposit: services.deposit // INYECCIÓN: Extraemos el valor real de la seña para el cálculo
     })
     .from(appointments)
     .innerJoin(patients, eq(appointments.patientId, patients.id))
@@ -108,8 +108,8 @@ export async function GET(request: Request) {
 
     for (const turno of turnosDeHoy) {
       try {
-        // Cálculo del saldo restante (Precio del tratamiento menos la seña de 50.000)
-        const saldoRestante = turno.servicePrice - COSTO_RESERVA_BASE;
+        // INYECCIÓN LÓGICA: Cálculo del saldo restante (Precio del tratamiento menos la seña dinámica)
+        const saldoRestante = turno.servicePrice - turno.serviceDeposit;
 
         // Extraemos solo la hora del turno y la formateamos al estilo local (Ej: 14:30)
         const fechaTurno = new Date(turno.appointmentDate);
