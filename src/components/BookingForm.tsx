@@ -65,16 +65,6 @@ export default function BookingForm() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // ============================================================================
-  // CONSTANTES FINANCIERAS (El Motor de Precios)
-  // Nota: Estas constantes se mantienen para lógica interna, pero se han 
-  // ocultado de la interfaz visual en favor del aviso de revisión médica.
-  // ============================================================================
-  const COSTO_RESERVA_BASE = 50000;
-  const PORCENTAJE_IMPUESTOS_MP = 0.0825; 
-  const CARGOS_SERVICIO = COSTO_RESERVA_BASE * PORCENTAJE_IMPUESTOS_MP;
-  const TOTAL_A_PAGAR = COSTO_RESERVA_BASE + CARGOS_SERVICIO;
-
   // Constante para identificar la categoría especial
   const CATEGORIA_ESPECIAL = "Skin regeneration y tratamientos complementarios";
 

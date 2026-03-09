@@ -64,8 +64,13 @@ export const services = sqliteTable("services", {
   
   durationMinutes: integer("duration_minutes").notNull(), // Ej: 45
   
-  // Precio completo del servicio. Permite guardar valor total, aunque la seña sea fija.
+  // Precio completo del servicio. Permite guardar valor total.
   price: integer("price").notNull().default(0), 
+  
+  // INYECCIÓN DE PRECIOS DINÁMICOS:
+  // Almacena el valor exacto de la seña que el paciente debe abonar por Mercado Pago 
+  // para reservar este servicio en particular. Se establece un default de 30000.
+  deposit: integer("deposit").notNull().default(30000),
   
   // Permite desactivar servicios sin borrarlos, manteniendo la integridad de turnos históricos.
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true), 

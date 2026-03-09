@@ -15,6 +15,7 @@
  * 3. Formateo: Convertir las fechas ISO de la base de datos a formato horario local.
  * 4. Gestión de Acciones: Permitir la revisión de turnos, cancelaciones motivadas y reprogramaciones.
  * 5. Gestión de Agenda: Controlar los cierres globales (Vacaciones/Feriados).
+ * 6. Gestión de Catálogo: Modificar precios y señas de la tabla 'services'.
  */
 
 'use client';
@@ -44,6 +45,16 @@ interface Bloqueo {
   reason: string;
 }
 
+// ============================================================================
+// Estructura para manejar los Servicios y sus Precios
+// ============================================================================
+interface ServicioCatalogo {
+  id: string;
+  name: string;
+  price: number;
+  deposit: number;
+}
+
 export default function DashboardPage() {
   // Estados para controlar los datos, la carga y los errores
   const [turnos, setTurnos] = useState<Turno[]>([]);
@@ -69,6 +80,13 @@ export default function DashboardPage() {
   const [blockStartDate, setBlockStartDate] = useState('');
   const [blockEndDate, setBlockEndDate] = useState('');
   const [blockReason, setBlockReason] = useState('');
+
+  // ============================================================================
+  // GESTIÓN DE PRECIOS Y SEÑAS
+  // ============================================================================
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [serviciosCatalogo, setServiciosCatalogo] = useState<ServicioCatalogo[]>([]);
+  const [isPricesLoading, setIsPricesLoading] = useState(false);
 
   const [isActionLoading, setIsActionLoading] = useState(false); // Para spinners en botones
 
@@ -285,8 +303,65 @@ export default function DashboardPage() {
       setIsActionLoading(false);
     }
   };
-  // ============================================================================
 
+  // ============================================================================
+  // GESTIÓN DE PRECIOS
+  // ============================================================================
+  
+  // Abre el modal y consulta los precios actuales a la API
+  const handleOpenPriceModal = async () => {
+    setIsPriceModalOpen(true);
+    setIsPricesLoading(true);
+    try {
+      const res = await fetch('/api/admin/servicios');
+      if (res.ok) {
+        // Aseguramos la forma de los datos para Typescript
+        const data = (await res.json()) as ServicioCatalogo[];
+        setServiciosCatalogo(data);
+      } else {
+        throw new Error("No se pudieron cargar los servicios.");
+      }
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsPricesLoading(false);
+    }
+  };
+
+  // Maneja el cambio de valores en los inputs numéricos (controlado en memoria)
+  const handlePriceChange = (id: string, field: 'price' | 'deposit', value: string) => {
+    // Si el campo queda vacío lo interpretamos como 0 para no romper React
+    const numericValue = value === '' ? 0 : parseInt(value, 10);
+    
+    setServiciosCatalogo(prev => 
+      prev.map(servicio => 
+        servicio.id === id ? { ...servicio, [field]: numericValue } : servicio
+      )
+    );
+  };
+
+  // Envía el paquete completo de servicios a la base de datos para guardarlos
+  const handleGuardarPrecios = async () => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch('/api/admin/servicios', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        // Enviamos el array completo con las modificaciones
+        body: JSON.stringify({ servicios: serviciosCatalogo })
+      });
+
+      if (!res.ok) throw new Error("Error al guardar los nuevos precios.");
+      
+      alert("Precios y señas actualizados correctamente en el sistema.");
+      setIsPriceModalOpen(false);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+  // ============================================================================
 
   // 2. DICCIONARIO DE ESTADOS (UI Dinámica)
   // Devuelve colores y textos amigables según el estado técnico de la BD
@@ -335,6 +410,16 @@ export default function DashboardPage() {
           
           {/* Grupo de Botones de Acción */}
           <div className="flex flex-wrap items-center gap-3">
+            
+            {/* INYECCIÓN DEL BOTÓN: Gestión de Precios */}
+            <button 
+              onClick={handleOpenPriceModal}
+              className="px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-lg hover:bg-emerald-200 transition-colors shadow-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Gestionar Precios
+            </button>
+
             {/* NUEVO BOTÓN: Gestión de Agenda/Vacaciones */}
             <button 
               onClick={() => setIsBlockModalOpen(true)}
@@ -343,6 +428,7 @@ export default function DashboardPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
               Bloquear Fechas
             </button>
+
             <div className="h-6 w-px bg-gray-300 hidden sm:block mx-1"></div> {/* Divisor visual */}
             <button 
               onClick={fetchTurnos}
@@ -466,6 +552,91 @@ export default function DashboardPage() {
         )}
 
       </div>
+
+      {/* =========================================================
+          MODAL DE GESTIÓN DE PRECIOS
+          ========================================================= */}
+      {isPriceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 relative my-8">
+            <div className="flex justify-between items-start mb-6 border-b pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  Gestión de Precios y Señas
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Modifica los valores del catálogo. Los cambios se reflejarán instantáneamente en todo el sitio web y en Mercado Pago.
+                </p>
+              </div>
+              <button onClick={() => setIsPriceModalOpen(false)} className="text-gray-400 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            {isPricesLoading ? (
+              <div className="py-12 text-center text-gray-500 animate-pulse">
+                Cargando el catálogo de la base de datos...
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 mb-6">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase">Tratamiento</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase w-40">Precio Total ($)</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-emerald-700 uppercase w-40">Valor Seña ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {serviciosCatalogo.map((servicio) => (
+                      <tr key={servicio.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                          {servicio.name}
+                        </td>
+                        <td className="px-4 py-4">
+                          <input 
+                            type="number"
+                            value={servicio.price === 0 ? '' : servicio.price}
+                            onChange={(e) => handlePriceChange(servicio.id, 'price', e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-[var(--color-zoe-blue)] outline-none"
+                            placeholder="Ej: 350000"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <input 
+                            type="number"
+                            value={servicio.deposit === 0 ? '' : servicio.deposit}
+                            onChange={(e) => handlePriceChange(servicio.id, 'deposit', e.target.value)}
+                            className="w-full border border-emerald-300 bg-emerald-50 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none font-bold text-emerald-900"
+                            placeholder="Ej: 30000"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+              <button 
+                onClick={() => setIsPriceModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleGuardarPrecios}
+                disabled={isActionLoading || isPricesLoading}
+                className="px-6 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm disabled:opacity-50 transition-colors"
+              >
+                {isActionLoading ? 'Guardando...' : 'Guardar Nuevos Precios'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================
           MODAL DE GESTIÓN DE BLOQUEOS (VACACIONES)

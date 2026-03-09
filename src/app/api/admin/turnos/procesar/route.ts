@@ -11,9 +11,9 @@
  * provisto por el administrador para inyectarlo en el correo del paciente.
  * * RESPONSABILIDADES:
  * 1. Seguridad: Verificar la cookie 'zoe_admin_session'.
- * 2. Extracción de Contexto: Buscar datos del paciente y servicio (incluyendo PRECIO).
+ * 2. Extracción de Contexto: Buscar datos del paciente y servicio (incluyendo PRECIO y SEÑA).
  * 3. Flujo de Aprobación:
- * - Calcular matemática financiera (Seña + Impuestos + Saldo).
+ * - Calcular matemática financiera (Seña dinámica + Impuestos + Saldo).
  * - Conectar con Mercado Pago API para generar el link de cobro.
  * - Conectar con Brevo API para enviar el correo de aprobación con el link y desglose.
  * - Actualizar estado a 'approved_unpaid'.
@@ -92,7 +92,8 @@ export async function POST(request: Request) {
       patientName: patients.fullName,
       patientEmail: patients.email,
       serviceName: services.name,
-      servicePrice: services.price // Extraemos el valor real del tratamiento
+      servicePrice: services.price, // Extraemos el valor real del tratamiento
+      serviceDeposit: services.deposit // Extraemos el valor real de la seña
     })
     .from(appointments)
     .innerJoin(patients, eq(appointments.patientId, patients.id))
@@ -118,10 +119,11 @@ export async function POST(request: Request) {
       if (!mpAccessToken) throw new Error("Token de Mercado Pago no configurado.");
 
       // ========================================================================
-      // A.1 MOTOR FINANCIERO (Matemática Estricta)
+      // A.1 MOTOR FINANCIERO DINÁMICO (Matemática Estricta)
       // ========================================================================
-      const PRECIO_TRATAMIENTO = turnoData.servicePrice; // Viene de la base de datos
-      const COSTO_RESERVA_BASE = 50000; // Seña fija
+      const PRECIO_TRATAMIENTO = turnoData.servicePrice; 
+      // INYECCIÓN: Ahora la seña base es dinámica, leída directamente de la Base de Datos
+      const COSTO_RESERVA_BASE = turnoData.serviceDeposit; 
       const PORCENTAJE_IMPUESTOS_MP = 0.0825; // 8.25%
       
       // Cálculos
