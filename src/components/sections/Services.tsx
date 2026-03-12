@@ -27,8 +27,8 @@ export default function Services() {
       duration: "Aprox. 2-4 hrs", // Generalized for the card front
       tag: "Más Popular", 
       imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210583/lifting-facial2_wfvzkz.jpg",
-      // INYECCIÓN CRÍTICA: Array con los IDs exactos de la base de datos que le pertenecen a esta tarjeta
-      dbIds: ["fibro-fullface-uuid", "fibro-corporal-uuid", "fibro-facial-uuid"],
+      // Array con los IDs exactos de la base de datos que le pertenecen a esta tarjeta
+      dbIds: ["fibro-fullface-uuid", "fibro-corporal-uuid", "fibro-facial-uuid", "fibro-individual-uuid"],
       // Datos extendidos para el Modal (Drawer)
       extended: {
         fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno.",
@@ -39,10 +39,33 @@ export default function Services() {
           "Area peribucal",
           "Flacidez facial y corporal"
         ],
+        // INYECCIÓN DE COPYWRITING (Diccionario de Variantes):
+        // Este objeto conecta el ID exacto de la base de datos con su texto descriptivo visual.
+        variantDetails: {
+          "fibro-fullface-uuid": {
+            subtitle: "Tratamiento en todas las zonas de la cara"
+          },
+          "fibro-corporal-uuid": {
+            subtitle: "Tratamiento en 1 zona del cuerpo (del cuello a los pies)"
+          },
+          "fibro-facial-uuid": {
+            subtitle: "Tratamiento en 3 zonas de la cara, opciones a elegir:",
+            subOptions: [
+              "Área Orbital (3 zonas del ojo)",
+              "Área frontal (3 zonas de la frente)",
+              "Área peribucal (3 zonas de la boca)"
+            ]
+          },
+          "fibro-individual-uuid": {
+            subtitle: "Tratamiento aplicado a 1 sola zona a elección de la cara"
+          }
+        },
+        // Esta priceTable ya no se usa como fuente de verdad, es solo un fallback de emergencia si falla la API
         priceTable: [
           { type: "4 horas Full face", cost: "$350.000 ARS" },
           { type: "4 horas cada zona Corporal", cost: "$350.000 ARS" },
-          { type: "2 horas por area facial", cost: "$220.000 ARS" }
+          { type: "2 horas por area facial", cost: "$220.000 ARS" },
+          { type: "Individual", cost: "$100.000 ARS"}
         ]
       }
     },
