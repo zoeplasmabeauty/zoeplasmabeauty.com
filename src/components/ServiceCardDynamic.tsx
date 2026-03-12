@@ -41,6 +41,8 @@ interface ServiceModel {
     benefits: string[];
     priceTable: { type: string; cost: string }[];
     specialNote?: string; // INYECCIÓN: Nota aclaratoria resaltada al final del modal
+    // INYECCIÓN DE COPYWRITING: Tipamos el diccionario de variantes opcional
+    variantDetails?: Record<string, { subtitle?: string; subOptions?: string[] }>;
   }
 }
 
@@ -271,23 +273,50 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
                   ) : liveServices.length > 0 ? (
                     // Mostrar todos los valores reales mapeados desde la Base de Datos
                     <div className="flex flex-col gap-2">
-                      {liveServices.map((ls, i) => (
-                        <div key={i} className="flex flex-col py-2 border-b border-gray-200 last:border-0 pb-3">
-                          <div className="flex justify-between items-start mb-1 gap-4">
-                            <span className="text-sm text-gray-800 font-bold leading-tight">{ls.name}</span>
-                            <span className="font-black text-[var(--color-zoe-blue)] text-lg whitespace-nowrap">
-                              ${ls.price.toLocaleString('es-AR')}
+                      {liveServices.map((ls, i) => {
+                        // Extraemos la información de copywriting si existe para este ID específico
+                        const copyDetails = service.extended?.variantDetails?.[ls.id];
+
+                        return (
+                          <div key={i} className="flex flex-col py-3 border-b border-gray-200 last:border-0 pb-4">
+                            <div className="flex justify-between items-start mb-1 gap-4">
+                              <span className="text-sm text-gray-800 font-bold leading-tight">{ls.name}</span>
+                              <span className="font-black text-[var(--color-zoe-blue)] text-lg whitespace-nowrap">
+                                ${ls.price.toLocaleString('es-AR')}
+                              </span>
+                            </div>
+
+                            {/* INYECCIÓN: Renderizado del Subtítulo y Opciones Educativas */}
+                            {copyDetails && (
+                              <div className="mb-2 mt-1">
+                                {copyDetails.subtitle && (
+                                  <p className="text-xs text-gray-600 font-medium italic mb-1">
+                                    {copyDetails.subtitle}
+                                  </p>
+                                )}
+                                {copyDetails.subOptions && copyDetails.subOptions.length > 0 && (
+                                  <ul className="space-y-1 mt-1">
+                                    {copyDetails.subOptions.map((subOpt, idx) => (
+                                      <li key={idx} className="flex items-start text-[11px] text-gray-500">
+                                        <span className="mr-1.5 text-stone-400">•</span>
+                                        {subOpt}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+
+                            {/* INYECCIÓN: Duración extraída de la BD en horas */}
+                            <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-1">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Duración estimada: {formatMinutesToHours(ls.durationMinutes || ls.duration_minutes)}
                             </span>
                           </div>
-                          {/* INYECCIÓN: Duración extraída de la BD en horas */}
-                          <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-1">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Duración estimada: {formatMinutesToHours(ls.durationMinutes || ls.duration_minutes)}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     // FALLBACK DE SEGURIDAD: Si falla la red, mostramos la tabla estática original
