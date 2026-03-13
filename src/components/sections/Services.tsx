@@ -39,6 +39,8 @@ export default function Services() {
           "Area peribucal",
           "Flacidez facial y corporal"
         ],
+        // INYECCIÓN VISUAL: Enlace al mapa de zonas faciales para el "Acordeón Nativo"
+        zonesMapUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1773434291/Zonas-faciales_midjpq.jpg",
         // INYECCIÓN DE COPYWRITING (Diccionario de Variantes):
         // Este objeto conecta el ID exacto de la base de datos con su texto descriptivo visual.
         variantDetails: {
@@ -57,7 +59,7 @@ export default function Services() {
             ]
           },
           "fibro-individual-uuid": {
-            subtitle: "Tratamiento aplicado a 1 sola zona a elección de la cara"
+            subtitle: "Tratamiento aplicado a 1 sola zona a elección del rostro"
           }
         },
         // Esta priceTable ya no se usa como fuente de verdad, es solo un fallback de emergencia si falla la API

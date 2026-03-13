@@ -43,6 +43,8 @@ interface ServiceModel {
     specialNote?: string; // INYECCIÓN: Nota aclaratoria resaltada al final del modal
     // INYECCIÓN DE COPYWRITING: Tipamos el diccionario de variantes opcional
     variantDetails?: Record<string, { subtitle?: string; subOptions?: string[] }>;
+    // INYECCIÓN VISUAL: Propiedad para recibir el enlace del mapa de zonas corporales/faciales
+    zonesMapUrl?: string; 
   }
 }
 
@@ -256,6 +258,38 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* ====================================================================
+                  ACORDEÓN NATIVO: Mapa de Zonas (Inyección Visual)
+                  ==================================================================== */}
+              {service.extended?.zonesMapUrl && (
+                <div className="mb-8">
+                  <details className="group bg-blue-50/40 border border-blue-100 rounded-xl overflow-hidden cursor-pointer transition-all duration-300">
+                    <summary className="flex items-center justify-between p-4 font-semibold text-[var(--color-zoe-blue)] text-sm outline-none hover:bg-blue-100/40 transition-colors">
+                      <span className="flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                        Ver mapa de zonas faciales
+                      </span>
+                      <span className="transition-transform duration-300 group-open:-rotate-180 text-[var(--color-zoe-blue)]">
+                        <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
+                      </span>
+                    </summary>
+                    <div className="p-4 pt-2 border-t border-blue-100/50 bg-white">
+                      {/* aspect-square asegura que la imagen no se corte ni deforme */}
+                      <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-100">
+                         <Image 
+                           src={service.extended.zonesMapUrl} 
+                           alt="Mapa interactivo de Zonas Faciales" 
+                           fill 
+                           className="object-contain" 
+                         />
+                      </div>
+                    </div>
+                  </details>
                 </div>
               )}
 
