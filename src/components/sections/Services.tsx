@@ -55,7 +55,7 @@ export default function Services() {
           {
             // Cuando no hay sub-ítems, simplemente no pasamos el array 'items'
             title: "Otras Zonas",
-            items: ["Controno mandibular", "Pomulos", "Lobulo de oreja"]
+            items: ["Contorno mandibular", "Pomulos", "Lobulo de oreja"]
           }
         ],
         // INYECCIÓN VISUAL: Enlace al mapa de zonas faciales para el "Acordeón Nativo"
@@ -78,7 +78,7 @@ export default function Services() {
             ]
           },
           "fibro-individual-uuid": {
-            subtitle: "Tratamiento en 1 sola zona a elección, del rostro"
+            subtitle: "Tratamiento en 1 zona a elección, del rostro"
           }
         },
         // Esta priceTable ya no se usa como fuente de verdad, es solo un fallback de emergencia si falla la API
