@@ -33,22 +33,41 @@ export default function Services() {
       extended: {
         fullDescription: "Tratamiento avanzado no quirúrgico que mejora la flacidez, arrugas y exceso de piel facial y corporal mediante retracción controlada y estimulación profunda de colágeno.",
         result: "Piel más firme, lisa y rejuvenecida de forma natural.",
+        
+        // ====================================================================
+        // INYECCIÓN DE COPYWRITING ESTRUCTURADO:
+        // Convertimos 'benefits' de un simple arreglo de strings a un arreglo de 
+        // objetos para poder soportar el efecto desplegable con subzonas.
+        // ====================================================================
         benefits: [
-          "Area orbital",
-          "Área frontal",
-          "Area peribucal",
-          "Flacidez facial y corporal"
+          {
+            title: "Área frontal",
+            items: ["Frente", "Foxy", "Entre cejo", "Nariz"]
+          },
+          {
+            title: "Área Orbital",
+            items: ["Párpados superiores", "Párpados Inferiores", "Patas de gallo"]
+          },
+          {
+            title: "Área peribucal",
+            items: ["Código de barra", "Nasogeniano | Jowls", "Mentón"]
+          },
+          {
+            // Cuando no hay sub-ítems, simplemente no pasamos el array 'items'
+            title: "Otras Zonas",
+            items: ["Controno mandibular", "Pomulos", "Lobulo de oreja"]
+          }
         ],
         // INYECCIÓN VISUAL: Enlace al mapa de zonas faciales para el "Acordeón Nativo"
-        zonesMapUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1773434291/Zonas-faciales_midjpq.jpg",
+        zonesMapUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1773538217/Zonas-faciales_midjpq.jpg",
         // INYECCIÓN DE COPYWRITING (Diccionario de Variantes):
         // Este objeto conecta el ID exacto de la base de datos con su texto descriptivo visual.
         variantDetails: {
           "fibro-fullface-uuid": {
-            subtitle: "Tratamiento en todas las zonas de la cara"
+            subtitle: "Tratamiento en todas las zonas del rostro"
           },
           "fibro-corporal-uuid": {
-            subtitle: "Tratamiento en 1 zona del cuerpo (del cuello a los pies)"
+            subtitle: "Tratamiento en 1 zona corporal a eleccion (desde la papada hacia abajo)"
           },
           "fibro-facial-uuid": {
             subtitle: "Tratamiento en 3 zonas de la cara, opciones a elegir:",
@@ -59,7 +78,7 @@ export default function Services() {
             ]
           },
           "fibro-individual-uuid": {
-            subtitle: "Tratamiento aplicado a 1 sola zona a elección del rostro"
+            subtitle: "Tratamiento en 1 sola zona a elección, del rostro"
           }
         },
         // Esta priceTable ya no se usa como fuente de verdad, es solo un fallback de emergencia si falla la API

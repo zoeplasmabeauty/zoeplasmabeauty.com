@@ -24,6 +24,15 @@ import Image from "next/image";
 // INYECCIÓN: Agregamos useEffect para el consumo de la API
 import { useState, useEffect } from "react";
 
+// ====================================================================
+// INYECCIÓN DE COPYWRITING ESTRUCTURADO: Tipado
+// Definimos la forma exacta del nuevo objeto Benefit que contiene subzonas.
+// ====================================================================
+export interface BenefitObject {
+  title: string;
+  items?: string[];
+}
+
 // 1. CONTRATO DE INTERFAZ: 
 // Modelamos el tipo exacto para el array de servicios, garantizando el intellisense.
 interface ServiceModel {
@@ -38,7 +47,8 @@ interface ServiceModel {
     fullDescription: string;
     result?: string; // Propiedad para aislar el "Resultado"
     benefitsTitle?: string; // INYECCIÓN: Título dinámico para la lista de beneficios (Ej: "Tratamientos complementarios")
-    benefits: string[];
+    // INYECCIÓN: Permite que benefits sea un simple texto (retrocompatibilidad) o un objeto complejo (sub-zonas)
+    benefits: (string | BenefitObject)[];
     priceTable: { type: string; cost: string }[];
     specialNote?: string; // INYECCIÓN: Nota aclaratoria resaltada al final del modal
     // INYECCIÓN DE COPYWRITING: Tipamos el diccionario de variantes opcional
@@ -241,22 +251,66 @@ export default function ServiceCardDynamic({ service }: { service: ServiceModel 
                 </div>
               )}
 
-              {/* LISTA DE BENEFICIOS (Renderizado Mapeado) */}
+              {/* ====================================================================
+                  LISTA DE BENEFICIOS / ZONAS (Renderizado Mapeado e Híbrido)
+                  ==================================================================== */}
               {service.extended?.benefits && service.extended.benefits.length > 0 && (
                 <div className="mb-8">
                   {/* INYECCIÓN: Usamos benefitsTitle si existe, sino caemos en el valor por defecto */}
                   <h4 className="font-bold text-gray-900 uppercase tracking-wider text-sm mb-4 border-b pb-2">
                     {service.extended.benefitsTitle || "Zonas a mejorar"}
                   </h4>
+                  
                   <ul className="space-y-3">
-                    {service.extended.benefits.map((benefit, i) => (
-                      <li key={i} className="flex items-start">
-                        <svg className="h-5 w-5 text-[var(--color-zoe-blue)] mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-700">{benefit}</span>
-                      </li>
-                    ))}
+                    {service.extended.benefits.map((benefit, i) => {
+                      // VERIFICACIÓN DE TIPO (Type Guard): 
+                      // Comprobamos si el elemento de la lista es solo un texto (retrocompatibilidad)
+                      if (typeof benefit === 'string') {
+                        return (
+                          <li key={i} className="flex items-start">
+                            <svg className="h-5 w-5 text-[var(--color-zoe-blue)] mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-700">{benefit}</span>
+                          </li>
+                        );
+                      }
+                      
+                      // SI ES UN OBJETO CON SUBZONAS (Ej: Plasma Fibroblast):
+                      return (
+                        <li key={i} className="w-full">
+                          {/* Verificamos si tiene elementos dentro (subOptions) para crear el Acordeón */}
+                          {benefit.items && benefit.items.length > 0 ? (
+                            <details className="group [&_summary::-webkit-details-marker]:hidden">
+                              <summary className="flex items-center cursor-pointer outline-none transition-colors group-open:text-[var(--color-zoe-blue)] group-hover:text-[var(--color-zoe-blue)]">
+                                <span className="flex items-start flex-grow">
+                                  <svg className="h-5 w-5 text-[var(--color-zoe-blue)] mr-2 flex-shrink-0 group-open:rotate-90 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                  <span className="text-sm font-bold">{benefit.title}</span>
+                                </span>
+                              </summary>
+                              {/* El cuerpo desplegable con las subzonas */}
+                              <ul className="mt-2 pl-9 space-y-2 border-l-2 border-blue-100 ml-[11px]">
+                                {benefit.items.map((subItem, idx) => (
+                                  <li key={idx} className="text-xs text-gray-500 font-medium flex items-center relative before:content-[''] before:absolute before:w-2 before:h-px before:bg-blue-200 before:-left-3">
+                                    {subItem}
+                                  </li>
+                                ))}
+                              </ul>
+                            </details>
+                          ) : (
+                            // Si es un objeto pero no tiene items (Ej: "Flacidez facial y corporal"), lo dibujamos normal
+                            <div className="flex items-start">
+                              <svg className="h-5 w-5 text-[var(--color-zoe-blue)] mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span className="text-sm font-medium text-gray-700">{benefit.title}</span>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
