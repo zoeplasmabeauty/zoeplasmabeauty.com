@@ -25,3 +25,6 @@ binding = "DB" # Simplificamos el nombre a "DB" para facilitar su uso en el cód
 database_name = "zoe-plasma-db"
 database_id = "2222ba6c-1921-4fc8-812f-282918e130e4"
 migrations_dir = "drizzle"
+
+[triggers]
+crons = ["0 * * * *"] # Esto significa: Ejecutar en el minuto 0 de cada hora (Ej: 1:00, 2:00, 3:00...)

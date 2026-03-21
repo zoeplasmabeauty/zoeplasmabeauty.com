@@ -6,7 +6,7 @@
  * Lee y formatea los datos de la base de datos para mostrarlos en una tabla clínica.
  * Soporta el flujo de Triage, permitiendo al admin ver 
  * el estado real del turno y abrir las fichas médicas para su aprobación.
- * Comprende funciones de Reprogramación y Cancelación Manual para turnos en estados específicos.
+ * Comprende funciones de Reprogramación y Cancelación Manual para turnos en todos los estados.
  * Permite generar alerta de cancelación a traves de un Modal interactivo 
  * capturando y enviando el motivo (razón) exacto de la cancelación al paciente.
  * * RESPONSABILIDADES:
@@ -512,15 +512,17 @@ export default function DashboardPage() {
                         {turno.status === 'under_review' && (
                           <Link 
                             href={`/admin/dashboard/revisar/${turno.id}`}
-                            className="text-[var(--color-zoe-blue)] hover:text-blue-800 font-bold"
+                            className="text-[var(--color-zoe-blue)] hover:text-blue-800 font-bold mr-4"
                           >
                             Revisar Ficha &rarr;
                           </Link>
                         )}
 
-                        {/* Modificamos el onclick de Cancelar para que abra el modal */}
+                        {/* INYECCIÓN: Agregamos todos los status del turno a los estados cancelables */}
+                        {(turno.status === 'approved_unpaid' || turno.status === 'confirmed' || turno.status === 'awaiting_triage' || turno.status === 'under_review') && (
+                          <div className="flex justify-end gap-3 inline-flex">
+                            {/* Reprogramar solo si ya está aprobado o confirmado */}
                         {(turno.status === 'approved_unpaid' || turno.status === 'confirmed') && (
-                          <div className="flex justify-end gap-3">
                             <button 
                               onClick={() => openReprogramModal(turno.id)}
                               disabled={isActionLoading}
@@ -528,6 +530,8 @@ export default function DashboardPage() {
                             >
                               Reprogramar
                             </button>
+                            )}
+                            {/* Cancelar disponible para todos los estados bloqueantes */}
                             <button 
                               onClick={() => openCancelModal(turno.id)}
                               disabled={isActionLoading}
@@ -538,7 +542,7 @@ export default function DashboardPage() {
                           </div>
                         )}
 
-                        {turno.status !== 'under_review' && turno.status !== 'approved_unpaid' && turno.status !== 'confirmed' && (
+                        {turno.status !== 'under_review' && turno.status !== 'approved_unpaid' && turno.status !== 'confirmed' && turno.status !== 'awaiting_triage' && (
                           <span className="text-gray-400">Histórico</span>
                         )}
 

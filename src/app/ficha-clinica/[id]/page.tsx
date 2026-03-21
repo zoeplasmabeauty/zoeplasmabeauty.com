@@ -46,7 +46,8 @@ export default async function FichaClinicaPage({ params }: { params: { id: strin
     fullName: patients.fullName,
     dni: patients.dni,
     phone: patients.phone,
-    email: patients.email
+    email: patients.email,
+    createdAt: appointments.createdAt // Usado para calcular la hora de creacion del turno y mostrar el contador en la ficha medica
   })
   .from(appointments)
   .innerJoin(patients, eq(appointments.patientId, patients.id))
@@ -81,7 +82,29 @@ export default async function FichaClinicaPage({ params }: { params: { id: strin
   // Le pasamos los datos pre-cargados al componente interactivo, incluyendo patientId
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <TriageForm initialData={turnoData} />
+      
+      {/* ====================================================================
+          INYECCIÓN VISUAL: Banner de Urgencia (Sentido de escasez)
+          ==================================================================== */}
+      <div className="max-w-3xl mx-auto mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-r-2xl shadow-sm flex items-start gap-4 transform transition-all hover:scale-[1.01]">
+        <div className="flex-shrink-0 mt-1">
+          <svg className="w-7 h-7 text-red-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-red-800 font-black text-lg tracking-wide uppercase">Tiempo de reserva limitado</h3>
+          <p className="text-red-700 text-sm mt-1.5 leading-relaxed">
+            Tienes un tiempo sugerido de <strong>20 minutos</strong> para completar esta ficha médica. 
+            Por seguridad, si la ficha no es enviada, el sistema liberará tu turno de la agenda automáticamente <strong>60 minutos</strong> después de haber iniciado la reserva.
+          </p>
+        </div>
+      </div>
+
+      <TriageForm initialData={{
+        ...turnoData,
+        createdAt: turnoData.createdAt.toISOString()
+      }} />
     </main>
   );
 }

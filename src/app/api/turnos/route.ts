@@ -6,12 +6,14 @@
  * Recibir las peticiones POST desde el formulario del frontend, 
  * validar la información y orquestar la escritura segura en la base de datos D1.
  * Actúa como el PASO 1 del embudo médico. Registra el turno en estado 'awaiting_triage'
- *  y detiene la generación de cobro hasta la aprobación del admin.
+ * y detiene la generación de cobro hasta la aprobación del admin.
+ * Impide a un mismo paciente generar múltiples reservas
  * * * RESPONSABILIDADES:
  * 1. Deserialización: Extraer y tipar el cuerpo de la petición (JSON).
  * 2. Validación: Asegurar que campos críticos como DNI, Teléfono y Email estén presentes.
- * 3. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
- * 4. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
+ * 3. Bloqueo Anti-Spam: Evitar el secuestro de agenda verificando estados previos.
+ * 4. Persistencia Dual: Registrar o actualizar al paciente (Upsert) y crear el registro del turno.
+ * 5. Gestión de Errores: Capturar fallos de infraestructura para evitar caídas del Worker.
  * * * SEGURIDAD:
  * Utiliza el Edge Runtime de Cloudflare para ejecución cercana al usuario y 
  * validación estricta de tipos para evitar inyecciones o datos corruptos.
@@ -22,7 +24,8 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { createDbConnection, Env } from '../../../db'; 
 // Importamos 'services' y 'eq' para buscar el nombre real del tratamiento para el recibo de pago
 import { patients, appointments, services } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
+// INYECCIÓN DE OPERADORES: Agregamos 'and' e 'inArray' para consultas complejas en la base de datos
+import { eq, and, inArray } from 'drizzle-orm';
 import { getBookingConfirmationEmail } from '../../../lib/emailTemplates';
 
 // Fuerza la compilación para el Edge Runtime de Cloudflare.
@@ -87,6 +90,39 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // ============================================================================
+    // 2. ESCUDO ANTI-SPAM (Prevención de Turnos Zombie)
+    // Verificamos de forma proactiva si el paciente ya tiene un turno encolado
+    // que esté bloqueando la agenda sin haber terminado su proceso.
+    // ============================================================================
+    const pacienteExistente = await db.select({ id: patients.id })
+      .from(patients)
+      .where(eq(patients.dni, dni));
+
+    if (pacienteExistente.length > 0) {
+      // Si el paciente existe, buscamos si tiene turnos huérfanos/en espera
+      const turnosBloqueantes = await db.select({ id: appointments.id })
+        .from(appointments)
+        .where(
+          and(
+            eq(appointments.patientId, pacienteExistente[0].id),
+            // inArray nos permite revisar múltiples estados de una sola vez
+            inArray(appointments.status, ['awaiting_triage', 'under_review'])
+          )
+        );
+
+      if (turnosBloqueantes.length > 0) {
+        // DETONACIÓN SEGURA: Cortamos el flujo y le enviamos la alerta al FrontEnd
+        console.log(`🛑 [ANTI-SPAM] Paciente con DNI ${dni} intentó crear un turno duplicado.`);
+        return NextResponse.json(
+          { error: "Ya tienes un turno en proceso. Por favor, completa tu ficha médica o contacta a soporte por WhatsApp para gestionar tu reserva anterior." }, 
+          { status: 409 } // 409 Conflict: El estado actual del servidor entra en conflicto con la solicitud
+        );
+      }
+    }
+    // ============================================================================
+
 
     // REGISTRO DE PACIENTE CON UPSERT SEGURO:
     // El 'email' se guarda en la tabla 'patients'. Si el DNI ya existe, se actualizan 

@@ -4,18 +4,20 @@
  * * PROPÓSITO ESTRATÉGICO:
  * Renderizar la Anamnesis (Ficha Clínica) del paciente, consolidando el Paso 2 
  * del embudo de ventas y mitigando riesgos legales/médicos.
- * Incluye un "Roadmap de Tranquilidad" interactivo al finalizar.
+ * Incluye un "Roadmap de Tranquilidad" interactivo al finalizar y un 
+ * temporizador de urgencia inquebrantable basado en la fecha de la base de datos.
  * * RESPONSABILIDADES:
  * 1. Presentación de Datos Base: Mostrar la información del Paso 1 (Solo lectura).
  * 2. Recolección Estricta: Manejar el estado de decenas de variables médicas.
  * 3. Orquestación: Enviar el paquete completo a la nueva API de Fichas Médicas.
+ * 4. Urgencia UX: Mostrar un reloj regresivo estricto para forzar la conversión.
  */
 
 'use client';
 
 // Importamos useEffect para manejar el temporizador de redirección
 import { useState, useEffect } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInSeconds } from 'date-fns';
 // Importamos useRouter para mover al usuario programáticamente
 import { useRouter } from 'next/navigation';
 
@@ -28,6 +30,7 @@ interface InitialData {
   dni: string;
   phone: string;
   email: string;
+  createdAt: string; // INYECCIÓN: Fecha absoluta de creación del turno para el reloj maestro
 }
 
 export default function TriageForm({ initialData }: { initialData: InitialData }) {
@@ -53,6 +56,49 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // ============================================================================
+  // MOTOR DE TIEMPO: RELOJ REGRESIVO INQUEBRANTABLE
+  // Calcula el tiempo restante desde la creación del turno en BD, no desde que carga la página
+  // ============================================================================
+  const [timeLeft, setTimeLeft] = useState<number>(3600); // 60 minutos por defecto
+  const [isTimeUp, setIsTimeUp] = useState(false);
+
+  useEffect(() => {
+    // Si la ficha ya fue enviada con éxito, detenemos el reloj
+    if (submitStatus === 'success') return;
+
+    const calculateTimeLeft = () => {
+      const createdDate = parseISO(initialData.createdAt);
+      // El límite real del CRON es 60 minutos (3600 segundos)
+      const expirationDate = new Date(createdDate.getTime() + 60 * 60 * 1000); 
+      const now = new Date();
+      const secondsRemaining = differenceInSeconds(expirationDate, now);
+
+      if (secondsRemaining <= 0) {
+        setIsTimeUp(true);
+        setTimeLeft(0);
+      } else {
+        setTimeLeft(secondsRemaining);
+      }
+    };
+
+    // Calculamos inmediatamente al montar
+    calculateTimeLeft();
+
+    // Actualizamos cada segundo
+    const intervalId = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(intervalId); // Limpieza de memoria
+  }, [initialData.createdAt, submitStatus]); // Dependencias
+
+  // Formateador visual del reloj (mm:ss)
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  // ============================================================================
 
   // 3. ESTADO GLOBAL DEL FORMULARIO MÉDICO (Cubre Secciones 2 a 7)
   const [formData, setFormData] = useState({
@@ -143,6 +189,34 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
     }
   }, [submitStatus, router]);
 
+
+  // ============================================================================
+  // PANTALLA DE BLOQUEO POR TIEMPO EXPIRADO
+  // Si el cron ya eliminó o está por eliminar el turno, no permitimos el envío
+  // ============================================================================
+  if (isTimeUp && submitStatus !== 'success') {
+    return (
+      <div className="mx-auto max-w-xl rounded-3xl bg-white p-10 text-center shadow-xl border border-red-100">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100 mb-6">
+          <svg className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="mb-2 text-2xl font-bold text-stone-800">Tiempo Expirado</h3>
+        <p className="text-stone-600 mb-8 leading-relaxed">
+          Por motivos de seguridad y organización de agenda, tu solicitud de turno ha sido liberada porque excedió el tiempo máximo (60 min) para completar la Ficha Médica.
+        </p>
+        <button 
+          onClick={() => router.push('/')}
+          className="px-8 py-3 bg-stone-900 text-white rounded-xl font-medium hover:bg-stone-800 transition-colors shadow-md"
+        >
+          Volver a solicitar un turno
+        </button>
+      </div>
+    );
+  }
+
+
   // 5. PANTALLA DE ÉXITO (El "Roadmap de Tranquilidad")
   if (submitStatus === 'success') {
     return (
@@ -217,7 +291,24 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
 
   // 6. RENDERIZADO DEL FORMULARIO GIGANTE
   return (
-    <div className="mx-auto max-w-4xl bg-white p-6 md:p-12 rounded-3xl shadow-lg border border-gray-100">
+    <div className="mx-auto max-w-4xl bg-white p-6 md:p-12 rounded-3xl shadow-lg border border-gray-100 relative">
+      
+      {/* ====================================================================
+          INYECCIÓN VISUAL: El Reloj Maestro (Sticky en escritorio)
+          ==================================================================== */}
+      <div className={`sticky top-4 z-40 mx-auto max-w-sm flex items-center justify-center gap-3 px-6 py-3 mb-8 rounded-full border shadow-sm backdrop-blur-md transition-colors duration-500
+        ${timeLeft <= 600 ? 'bg-red-50 border-red-200 text-red-700 animate-pulse' : 
+          timeLeft <= 1800 ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 
+          'bg-stone-50 border-stone-200 text-stone-700'}`}
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span className="font-bold tracking-widest font-mono text-lg">{formatTime(timeLeft)}</span>
+        <span className="text-xs font-semibold uppercase opacity-80">restantes</span>
+      </div>
+
+
       <div className="mb-8 border-b pb-6 text-center">
         <h2 className="text-3xl font-light text-stone-800">Ficha Clínica y <span className="font-semibold text-[var(--color-zoe-blue)]">Anamnesis</span></h2>
         <p className="mt-2 text-sm text-stone-500">Paso 2 de 2: Seguridad y Evaluación del Paciente</p>
