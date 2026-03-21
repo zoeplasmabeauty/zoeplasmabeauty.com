@@ -61,7 +61,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
   // MOTOR DE TIEMPO: RELOJ REGRESIVO INQUEBRANTABLE
   // Calcula el tiempo restante desde la creación del turno en BD, no desde que carga la página
   // ============================================================================
-  const [timeLeft, setTimeLeft] = useState<number>(3600); // 60 minutos por defecto
+  const [timeLeft, setTimeLeft] = useState<number>(1200); // 20 minutos por defecto
   const [isTimeUp, setIsTimeUp] = useState(false);
 
   useEffect(() => {
@@ -70,8 +70,8 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
 
     const calculateTimeLeft = () => {
       const createdDate = parseISO(initialData.createdAt);
-      // El límite real del CRON es 60 minutos (3600 segundos)
-      const expirationDate = new Date(createdDate.getTime() + 60 * 60 * 1000); 
+      // El límite real del CRON es 20 minutos (1200 segundos)
+      const expirationDate = new Date(createdDate.getTime() + 20 * 60 * 1000); 
       const now = new Date();
       const secondsRemaining = differenceInSeconds(expirationDate, now);
 
