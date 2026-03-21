@@ -64,17 +64,17 @@ export default function Services() {
         // Este objeto conecta el ID exacto de la base de datos con su texto descriptivo visual.
         variantDetails: {
           "fibro-fullface-uuid": {
-            subtitle: "Tratamiento en todas las zonas del rostro"
+            subtitle: "Tratamiento en todas las áreas del rostro"
           },
           "fibro-corporal-uuid": {
             subtitle: "Tratamiento en 1 zona corporal a eleccion (desde la papada hacia abajo)"
           },
           "fibro-facial-uuid": {
-            subtitle: "Tratamiento en 3 zonas de la cara, opciones a elegir:",
+            subtitle: "Tratamiento en 3 áreas del rostro, opciones a elegir:",
             subOptions: [
-              "Área Orbital (3 zonas del ojo)",
-              "Área frontal (3 zonas de la frente)",
-              "Área peribucal (3 zonas de la boca)"
+              "Área frontal",
+              "Área Orbital",
+              "Área peribucal"
             ]
           },
           "fibro-individual-uuid": {
