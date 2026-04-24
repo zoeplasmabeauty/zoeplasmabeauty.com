@@ -1,5 +1,5 @@
 -- ARCHIVO: seed.sql
--- PROPÓSITO: Reestructurar la base de datos para soportar la Máquina de Estados y Fichas Clínicas.
+-- PROPÓSITO: Reestructurar la base de datos para soportar la Máquina de Estados y Fichas Esteticas.
 
 -- ======================================================================
 -- PASO 1: RECONSTRUCCIÓN ESTRUCTURAL COMPLETA (Tear Down)
@@ -45,7 +45,7 @@ CREATE TABLE appointments (
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
--- Tabla de Fichas Clínicas
+-- Tabla de Fichas esteticas
 CREATE TABLE medical_records (
   id TEXT PRIMARY KEY NOT NULL,
   appointment_id TEXT NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,

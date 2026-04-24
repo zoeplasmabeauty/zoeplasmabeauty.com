@@ -2,7 +2,7 @@
  * ARCHIVO: src/components/TriageForm.tsx
  * ARQUITECTURA: Componente de Cliente (React)
  * * PROPÓSITO ESTRATÉGICO:
- * Renderizar la Anamnesis (Ficha Clínica) del paciente, consolidando el Paso 2 
+ * Renderizar la Anamnesis (Ficha estetica) del paciente, consolidando el Paso 2 
  * del embudo de ventas y mitigando riesgos legales/médicos.
  * Incluye un "Roadmap de Tranquilidad" interactivo al finalizar y un 
  * temporizador de urgencia inquebrantable basado en la fecha de la base de datos.
@@ -100,48 +100,52 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
   };
   // ============================================================================
 
-  // 3. ESTADO GLOBAL DEL FORMULARIO MÉDICO (Cubre Secciones 2 a 7)
+  // 3. ESTADO GLOBAL DEL FORMULARIO MÉDICO (Refactorizado para Cosmiatría)
   const [formData, setFormData] = useState({
     // Extras Sección 2
     dob: '',
     address: '',
     instagram: '',
     howFoundUs: '',
-    // Sección 3: Antecedentes
-    hasDisease: 'no',
-    diseaseDetails: '',
-    recentSurgery: '',
-    coagulationDisorder: 'no',
+    
+    // Anamnesis
+    underMedicalTreatment: 'no',
+    medicalTreatmentDetails: '',
     takesMedication: 'no',
     medicationDetails: '',
-    allergies: '',
-    // Sección 4: Cutánea
-    skinType: '',
+    recentSurgery: 'no',
+    surgeryDetails: '',
+    allergies: 'no',
+    allergiesDetails: '',
     usesRetinoids: 'no',
     retinoidsDetails: '',
     usesSunscreen: 'no',
-    // Sección 5: Hábitos
+    
+    // Hábitos
     smokes: 'no',
     drinksAlcohol: 'no',
-    // Sección 6: Hormonal
-    pregnantNursing: 'no',
-    lastMenstrualCycle: '', // Guarda un string en formato YYYY-MM-DD
-    contraceptive: '',
-    // Sección 7: Estética y Riesgos
+    conditions: [] as string[],
+    observations: '',
+    
+    // Evaluación Estética
+    skinType: '',
+    skinStatus: [] as string[],
     recentAestheticTreatments: 'no',
     treatmentDetails: '',
-    contraindications: [] as string[], // Array para múltiples checkboxes
+    
+    // Firma
+    signature: '',
     consentGiven: false,
   });
 
-  // Manejador para los Checkboxes de Contraindicaciones (Añade o quita del array)
-  const handleContraindicationChange = (item: string) => {
+  // Manejador genérico para arrays de checkboxes
+  const handleCheckboxArrayChange = (field: 'conditions' | 'skinStatus', item: string) => {
     setFormData((prev) => {
-      const exists = prev.contraindications.includes(item);
+      const exists = prev[field].includes(item);
       if (exists) {
-        return { ...prev, contraindications: prev.contraindications.filter((i) => i !== item) };
+        return { ...prev, [field]: prev[field].filter((i) => i !== item) };
       } else {
-        return { ...prev, contraindications: [...prev.contraindications, item] };
+        return { ...prev, [field]: [...prev[field], item] };
       }
     });
   };
@@ -150,7 +154,11 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.consentGiven) {
-      setErrorMessage('Debes aceptar el consentimiento informado para continuar.');
+      setErrorMessage('Debes aceptar la declaración para continuar.');
+      return;
+    }
+    if (formData.signature.trim() === '') {
+      setErrorMessage('La firma es obligatoria.');
       return;
     }
     
@@ -158,7 +166,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
     setErrorMessage('');
 
     try {
-      // AQUÍ enviaremos los datos a la nueva ruta API que crearemos: /api/turnos/ficha
+      // Enviamos los datos a la nueva ruta API: /api/turnos/ficha
       const res = await fetch('/api/turnos/ficha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -310,7 +318,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
 
 
       <div className="mb-8 border-b pb-6 text-center">
-        <h2 className="text-3xl font-light text-stone-800">Ficha Clínica y <span className="font-semibold text-[var(--color-zoe-blue)]">Anamnesis</span></h2>
+        <h2 className="text-3xl font-light text-stone-800">Ficha Estética y <span className="font-semibold text-[var(--color-zoe-blue)]">Cosmiatría</span></h2>
         <p className="mt-2 text-sm text-stone-500">Paso 2 de 2: Seguridad y Evaluación del Paciente</p>
       </div>
 
@@ -347,7 +355,6 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2">Fecha de Nacimiento</label>
-              {/* Atributos min y max aplicados aquí */}
               <input 
                 type="date" 
                 required 
@@ -382,33 +389,21 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
         </section>
 
         {/* =========================================================
-            SECCIÓN 3: ANTECEDENTES DE SALUD
+            SECCIÓN 3: ANAMNESIS | DECLARACIÓN
             ========================================================= */}
         <section>
-          <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Antecedentes de Salud</h3>
+          <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Anamnesis | Declaración</h3>
           <div className="space-y-6">
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-              <label className="text-sm font-semibold text-gray-600">¿Presenta alguna enfermedad actual?</label>
-              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.hasDisease} onChange={e => setFormData({...formData, hasDisease: e.target.value})}>
+              <label className="text-sm font-semibold text-gray-600">¿Se encuentra bajo tratamiento médico?</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.underMedicalTreatment} onChange={e => setFormData({...formData, underMedicalTreatment: e.target.value})}>
                 <option value="no">No</option>
                 <option value="si">Sí</option>
               </select>
-              {formData.hasDisease === 'si' && (
-                <input type="text" required placeholder="¿Cuál?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.diseaseDetails} onChange={e => setFormData({...formData, diseaseDetails: e.target.value})} />
+              {formData.underMedicalTreatment === 'si' && (
+                <input type="text" required placeholder="¿Cuál?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.medicalTreatmentDetails} onChange={e => setFormData({...formData, medicalTreatmentDetails: e.target.value})} />
               )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">¿Tuvo alguna cirugía reciente?</label>
-              <input type="text" placeholder="Detalle si aplica, o deje en blanco" className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.recentSurgery} onChange={e => setFormData({...formData, recentSurgery: e.target.value})} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-              <label className="text-sm font-semibold text-gray-600">¿Trastornos de coagulación?</label>
-              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.coagulationDisorder} onChange={e => setFormData({...formData, coagulationDisorder: e.target.value})}>
-                <option value="no">No</option>
-                <option value="si">Sí</option>
-              </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
@@ -422,56 +417,57 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2">¿Alergias conocidas?</label>
-              <input type="text" placeholder="Ej: Penicilina, látex, anestesia..." className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <label className="text-sm font-semibold text-gray-600">¿Cirugías recientes?</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.recentSurgery} onChange={e => setFormData({...formData, recentSurgery: e.target.value})}>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+              {formData.recentSurgery === 'si' && (
+                <input type="text" required placeholder="¿Cuál?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.surgeryDetails} onChange={e => setFormData({...formData, surgeryDetails: e.target.value})} />
+              )}
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <label className="text-sm font-semibold text-gray-600">¿Alergias conocidas?</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})}>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+              {formData.allergies === 'si' && (
+                <input type="text" required placeholder="¿Cuáles?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.allergiesDetails} onChange={e => setFormData({...formData, allergiesDetails: e.target.value})} />
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <label className="text-sm font-semibold text-gray-600">¿Usa retinoides, ácidos o exfoliantes?</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.usesRetinoids} onChange={e => setFormData({...formData, usesRetinoids: e.target.value})}>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+              {formData.usesRetinoids === 'si' && (
+                <input type="text" required placeholder="¿Cuál?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.retinoidsDetails} onChange={e => setFormData({...formData, retinoidsDetails: e.target.value})} />
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <label className="text-sm font-semibold text-gray-600">¿Usa protector solar?</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.usesSunscreen} onChange={e => setFormData({...formData, usesSunscreen: e.target.value})}>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+            </div>
+
           </div>
         </section>
 
         {/* =========================================================
-            SECCIÓN 4 y 5: CUTÁNEA Y HÁBITOS
+            SECCIÓN 4 y 5: HÁBITOS Y EVALUACIÓN ESTÉTICA
             ========================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          
           <section>
-            <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Evaluación Cutánea</h3>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">Tipo de Piel</label>
-                <select required className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.skinType} onChange={e => setFormData({...formData, skinType: e.target.value})}>
-                  <option value="" disabled>Selecciona...</option>
-                  <option value="Seca">Seca</option>
-                  <option value="Mixta">Mixta</option>
-                  <option value="Grasa">Grasa</option>
-                  <option value="Sensible">Sensible</option>
-                  <option value="Reactiva">Reactiva</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">¿Usa retinoides o ácidos exfoliantes?</label>
-                <select className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50 mb-2" value={formData.usesRetinoids} onChange={e => setFormData({...formData, usesRetinoids: e.target.value})}>
-                  <option value="no">No</option>
-                  <option value="si">Sí</option>
-                </select>
-                {formData.usesRetinoids === 'si' && (
-                  <input type="text" required placeholder="¿Cuáles?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.retinoidsDetails} onChange={e => setFormData({...formData, retinoidsDetails: e.target.value})} />
-                )}
-                <p className="text-xs text-stone-500 mt-1">* Se recomienda traer su rutina habitual el día del turno.</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">¿Usa protector solar diariamente?</label>
-                <select className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.usesSunscreen} onChange={e => setFormData({...formData, usesSunscreen: e.target.value})}>
-                  <option value="no">No</option>
-                  <option value="si">Sí</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Hábitos y Salud Hormonal</h3>
+            <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Hábitos</h3>
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-gray-600">¿Fuma?</label>
@@ -487,82 +483,97 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
                   <option value="si">Sí</option>
                 </select>
               </div>
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-600">¿Está embarazada/amamantando?</label>
-                <select className="px-4 py-2 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.pregnantNursing} onChange={e => setFormData({...formData, pregnantNursing: e.target.value})}>
-                  <option value="no">No</option>
-                  <option value="si">Sí</option>
-                </select>
+
+              <div className="pt-2">
+                <label className="block text-sm font-semibold text-gray-600 mb-3">¿Presenta alguna de las siguientes condiciones?</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  {[
+                    "Embarazo", "Diabetes", "Problemas de cicatrización", 
+                    "Enfermedades de la piel", "Alergias", "Herpes activo", "Lesiones sospechosas"
+                  ].map((item) => (
+                    <label key={item} className="flex items-start space-x-3 text-sm text-stone-700 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--color-zoe-blue)] focus:ring-[var(--color-zoe-blue)]"
+                        checked={formData.conditions.includes(item)}
+                        onChange={() => handleCheckboxArrayChange('conditions', item)}
+                      />
+                      <span className="leading-tight">{item}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">Fecha del último ciclo menstrual</label>
-                {/* Atributos min y max aplicados aquí también */}
-                <input 
-                  type="date" 
-                  min={minDateStr}
-                  max={maxDateStr}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--color-zoe-blue)] bg-gray-50/50" 
-                  value={formData.lastMenstrualCycle} 
-                  onChange={e => setFormData({...formData, lastMenstrualCycle: e.target.value})} 
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-2">Método anticonceptivo</label>
-                <input type="text" placeholder="Si aplica" className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.contraceptive} onChange={e => setFormData({...formData, contraceptive: e.target.value})} />
+                <label className="block text-sm font-semibold text-gray-600 mb-2">Observaciones:</label>
+                <textarea 
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[var(--color-zoe-blue)] bg-gray-50/50 resize-none h-24" 
+                  placeholder="Detalles adicionales..."
+                  value={formData.observations} 
+                  onChange={e => setFormData({...formData, observations: e.target.value})}
+                ></textarea>
               </div>
             </div>
           </section>
+
+          <section>
+            <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">4. EVALUACIÓN ESTÉTICA (NO MÉDICA)</h3>
+            <div className="space-y-6">
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-2">Tipo de Piel</label>
+                <select required className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.skinType} onChange={e => setFormData({...formData, skinType: e.target.value})}>
+                  <option value="" disabled>Selecciona...</option>
+                  <option value="Normal">Normal</option>
+                  <option value="Seca">Seca</option>
+                  <option value="Mixta">Mixta</option>
+                  <option value="Grasa">Grasa</option>
+                  <option value="Deshidratada">Deshidratada</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-3">Estado de la piel en zona a tratar:</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  {[
+                    "Sensible", "Lesiones", "Manchas", 
+                    "Flacidez", "Arrugas", "Cicatrices", "Estrías"
+                  ].map((item) => (
+                    <label key={item} className="flex items-start space-x-3 text-sm text-stone-700 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--color-zoe-blue)] focus:ring-[var(--color-zoe-blue)]"
+                        checked={formData.skinStatus.includes(item)}
+                        onChange={() => handleCheckboxArrayChange('skinStatus', item)}
+                      />
+                      <span className="leading-tight">{item}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-2">¿Tratamientos estéticos recientes?</label>
+                <select className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50 mb-2" value={formData.recentAestheticTreatments} onChange={e => setFormData({...formData, recentAestheticTreatments: e.target.value})}>
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
+                </select>
+                {formData.recentAestheticTreatments === 'si' && (
+                  <input type="text" required placeholder="¿Cuáles?" className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none" value={formData.treatmentDetails} onChange={e => setFormData({...formData, treatmentDetails: e.target.value})} />
+                )}
+              </div>
+
+            </div>
+          </section>
+
         </div>
 
         {/* =========================================================
-            SECCIÓN 7: ANTECEDENTES ESTÉTICOS Y CONTRAINDICACIONES
+            SECCIÓN FINAL: DECLARACIÓN Y FIRMA (Obligatorio)
             ========================================================= */}
-        <section>
-          <h3 className="mb-6 text-lg font-semibold text-stone-800 border-b pb-2">Antecedentes Estéticos y Precauciones</h3>
-          
-          <div className="mb-8">
-            <label className="block text-sm font-semibold text-gray-600 mb-2">¿Realizó tratamientos estéticos recientes?</label>
-            <select className="w-full md:w-1/3 px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50 mb-4" value={formData.recentAestheticTreatments} onChange={e => setFormData({...formData, recentAestheticTreatments: e.target.value})}>
-              <option value="no">No</option>
-              <option value="si">Sí</option>
-            </select>
-            {formData.recentAestheticTreatments === 'si' && (
-              <input type="text" required placeholder="Detallar tratamientos..." className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none bg-gray-50/50" value={formData.treatmentDetails} onChange={e => setFormData({...formData, treatmentDetails: e.target.value})} />
-            )}
-          </div>
-
-          <div className="bg-red-50 p-6 rounded-2xl border border-red-100 mb-8">
-            <h4 className="text-red-800 font-bold mb-4">Contraindicaciones Médicas</h4>
-            <p className="text-sm text-red-600 mb-4">En caso de presentar alguna de las siguientes, debes marcarla para informar al especialista antes de que apruebe tu tratamiento:</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[
-                "Herpes activo o recurrente", "Infecciones cutáneas", "Tratamientos estéticos recientes", 
-                "Piel bronceada o sensibilizada", "Uso de anticoagulantes", "Enfermedades autoinmunes", 
-                "Cuadro viral reciente o fiebre", "Medicación oral fotosensibilizante", "Diabetes no controlada", 
-                "Tendencia a mala cicatrización", "Enfermedades cardíacas", "Uso de marcapasos", 
-                "Enfermedades en fase aguda", "Hipertensión arterial no controlada", "Alergia a anestésicos tópicos", 
-                "Heridas abiertas en zona", "Presencia de tumores", "Tuberculosis", 
-                "Prótesis metálicas en zona", "Fototipos altos (Piel oscura)"
-              ].map((item) => (
-                <label key={item} className="flex items-start space-x-3 text-sm text-stone-700 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[var(--color-zoe-blue)] focus:ring-[var(--color-zoe-blue)]"
-                    checked={formData.contraindications.includes(item)}
-                    onChange={() => handleContraindicationChange(item)}
-                  />
-                  <span className="leading-tight">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* CONSENTIMIENTO INFORMADO (Obligatorio) */}
+        <section className="pt-6 border-t border-gray-100">
           <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200">
-            <label className="flex items-start space-x-4 cursor-pointer">
+            <label className="flex items-start space-x-4 cursor-pointer mb-6">
               <input 
                 type="checkbox" 
                 required
@@ -571,24 +582,42 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
                 onChange={(e) => setFormData({...formData, consentGiven: e.target.checked})}
               />
               <span className="text-sm text-stone-700 leading-relaxed">
-                <strong>Consentimiento Informado:</strong> Declaro que la información proporcionada es verdadera y completa. 
-                He sido informado/a sobre las características del tratamiento estético seleccionado, sus cuidados previos 
-                y posteriores, y autorizo su realización dentro del ámbito estético no médico.
+                <strong>Declaración:</strong> DECLARO QUE: He brindado información veraz sobre mi estado de salud.
+                He recibido explicación del procedimiento estético seleccionado.
+                He firmado el consentimiento informado y autorizo su realización dentro del ámbito estético no médico.
+                Me comprometo a seguir los cuidados indicados.
               </span>
             </label>
+
+            <div className="border-t border-gray-300 pt-6">
+              <label className="block text-sm font-bold text-gray-800 mb-2">
+                FIRMA: (Escriba su Nombre Completo)
+              </label>
+              <input 
+                type="text" 
+                required 
+                placeholder="Ej: María Pérez" 
+                className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-stone-800 bg-white font-medium" 
+                value={formData.signature} 
+                onChange={e => setFormData({...formData, signature: e.target.value})} 
+              />
+              <p className="text-xs text-stone-500 mt-2">
+                * Al escribir su nombre, usted declara bajo su responsabilidad que es consciente de la información proporcionada en este formulario.
+              </p>
+            </div>
           </div>
         </section>
 
         <button 
           type="submit" 
-          disabled={isSubmitting || !formData.consentGiven}
+          disabled={isSubmitting || !formData.consentGiven || formData.signature.trim() === ''}
           className={`w-full py-4 px-6 rounded-2xl font-bold text-lg text-white transition-all shadow-md
-            ${(isSubmitting || !formData.consentGiven)
+            ${(isSubmitting || !formData.consentGiven || formData.signature.trim() === '')
               ? 'bg-gray-400 cursor-not-allowed' 
               : 'bg-stone-800 hover:bg-stone-900 active:scale-[0.98]'
             }`}
         >
-          {isSubmitting ? 'Enviando Ficha Clínica...' : 'Firmar y Enviar Ficha'}
+          {isSubmitting ? 'Enviando Ficha Estética...' : 'Firmar y Enviar Ficha'}
         </button>
 
       </form>

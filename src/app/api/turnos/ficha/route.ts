@@ -2,13 +2,13 @@
  * ARCHIVO: src/app/api/turnos/ficha/route.ts
  * ARQUITECTURA: Controlador Backend (Edge API Route - POST)
  * * * PROPÓSITO ESTRATÉGICO:
- * Recibir, validar y almacenar la Ficha Clínica (Triage) del paciente. 
- * Actúa como la puerta de seguridad médica de la clínica: ningún paciente 
+ * Recibir, validar y almacenar la Ficha estetica (Triage) del paciente. 
+ * Actúa como la puerta de seguridad médica de la estetica: ningún paciente 
  * pasa a la fase de pago sin que este endpoint registre su estado de salud.
  * * * RESPONSABILIDADES (LO QUE HACE ESTE CÓDIGO):
  * 1. Autenticación de Turno: Verifica que el 'appointmentId' recibido exista y sea válido.
  * 2. Mapeo de Datos: Convierte las respuestas de texto del frontend ("si"/"no") 
- * a booleanos estrictos (true/false) que Drizzle y SQLite puedan entender.
+ * a enteros estrictos (1/0) que Drizzle y SQLite requieren para campos booleanos lógicos.
  * 3. Persistencia Relacional Múltiple (3 Pasos):
  * - Actualiza la tabla 'patients' con los nuevos datos personales (domicilio, fecha de nac.).
  * - Inserta un nuevo registro en la tabla 'medical_records' vinculado al turno.
@@ -27,8 +27,8 @@ import { getAdminTriageAlertEmail } from '../../../../lib/emailTemplates';
 
 export const runtime = 'edge';
 
-// Función auxiliar para convertir los selects del frontend en booleanos puros
-const parseYesNo = (value: string | undefined): boolean => value === 'si';
+// FIX: Función auxiliar para convertir los selects del frontend en enteros (1 = Sí, 0 = No) para SQLite
+const parseYesNo = (value: string | undefined): number => value === 'si' ? 1 : 0;
 
 export async function POST(request: Request) {
   try {
@@ -76,45 +76,46 @@ export async function POST(request: Request) {
       })
       .where(eq(patients.id, turnoOriginal.patientId));
 
-    // B. CREAR LA FICHA CLÍNICA (Triage Médico completo)
+    // B. CREAR LA FICHA ESTETICA (Triage Médico completo)
     // Generamos un ID único para la ficha
     const medicalRecordUUID = crypto.randomUUID();
 
+    // ============================================================================
+    // INSERCIÓN DE DATOS: Mapeamos los campos del nuevo formulario de Cosmiatría
+    // hacia las nuevas columnas de la tabla medical_records
+    // ============================================================================
     await db.insert(medicalRecords).values({
       id: medicalRecordUUID,
       appointmentId: appointmentId, // Vínculo inquebrantable con el turno
       
-      // Sección 3: Antecedentes (Mapeados a booleanos)
-      hasDisease: parseYesNo(body.hasDisease),
-      diseaseDetails: body.diseaseDetails || null,
-      recentSurgery: body.recentSurgery || null,
-      coagulationDisorder: parseYesNo(body.coagulationDisorder),
+      // Anamnesis
+      underMedicalTreatment: parseYesNo(body.underMedicalTreatment),
+      medicalTreatmentDetails: body.medicalTreatmentDetails || null,
       takesMedication: parseYesNo(body.takesMedication),
       medicationDetails: body.medicationDetails || null,
-      allergies: body.allergies || null,
-      
-      // Sección 4: Evaluación Cutánea
-      skinType: body.skinType,
+      recentSurgery: parseYesNo(body.recentSurgery),
+      surgeryDetails: body.surgeryDetails || null,
+      allergies: parseYesNo(body.allergies),
+      allergiesDetails: body.allergiesDetails || null,
       usesRetinoids: parseYesNo(body.usesRetinoids),
       retinoidsDetails: body.retinoidsDetails || null,
       usesSunscreen: parseYesNo(body.usesSunscreen),
       
-      // Sección 5: Hábitos
+      // Hábitos y Condiciones (Condiciones viene como Array y se guarda como JSON)
       smokes: parseYesNo(body.smokes),
       drinksAlcohol: parseYesNo(body.drinksAlcohol),
+      conditions: JSON.stringify(body.conditions || []),
+      observations: body.observations || null,
       
-      // Sección 6: Salud Hormonal
-      pregnantNursing: parseYesNo(body.pregnantNursing),
-      lastMenstrualCycle: body.lastMenstrualCycle || null,
-      contraceptive: body.contraceptive || null,
-      
-      // Sección 7: Antecedentes Estéticos y Riesgos
+      // Evaluación Estética (skinStatus viene como Array y se guarda como JSON)
+      skinType: body.skinType,
+      skinStatus: JSON.stringify(body.skinStatus || []),
       recentAestheticTreatments: parseYesNo(body.recentAestheticTreatments),
       treatmentDetails: body.treatmentDetails || null,
-      // Las contraindicaciones vienen como Array (ej: ["Diabetes", "Marcapasos"]). 
-      // Las convertimos a un string JSON para guardarlas de forma segura en una sola columna.
-      contraindications: JSON.stringify(body.contraindications || []),
-      consentGiven: body.consentGiven === true, // Validación estricta del booleano nativo
+      
+      // Firma y Consentimiento
+      signature: body.signature,
+      consentGiven: body.consentGiven === true ? 1 : 0, // FIX: Transformamos el booleano en entero (1 o 0)
     });
 
     // C. AVANZAR LA MÁQUINA DE ESTADOS (Bloqueo de Modificación)
@@ -175,12 +176,12 @@ export async function POST(request: Request) {
     // Le confirmamos al componente TriageForm que todo se guardó perfectamente
     return NextResponse.json({ 
       success: true, 
-      message: "Ficha clínica guardada y turno en revisión." 
+      message: "Ficha estetica guardada y turno en revisión." 
     }, { status: 201 });
 
   } catch (error: any) {
     // 6. MANEJO DE CRISIS
-    console.error("🔥 Error crítico guardando Ficha Clínica:", error.message);
+    console.error("🔥 Error crítico guardando Ficha estetica:", error.message);
     
     return NextResponse.json(
       { error: "Error interno del servidor al procesar la ficha." }, 

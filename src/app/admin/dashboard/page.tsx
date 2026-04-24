@@ -3,7 +3,7 @@
  * ARQUITECTURA: Componente de Cliente (Dashboard UI)
  * * PROPÓSITO ESTRATÉGICO:
  * Actuar como la "cabina de control" privada de Zoe Plasma Beauty.
- * Lee y formatea los datos de la base de datos para mostrarlos en una tabla clínica.
+ * Lee y formatea los datos de la base de datos para mostrarlos en una tabla estetica.
  * Soporta el flujo de Triage, permitiendo al admin ver 
  * el estado real del turno y abrir las fichas médicas para su aprobación.
  * Comprende funciones de Reprogramación y Cancelación Manual para turnos en todos los estados.
@@ -690,7 +690,7 @@ export default function DashboardPage() {
                 <label className="block text-xs font-medium text-gray-700 mb-1">Motivo (Visible para el paciente)</label>
                 <input 
                   type="text" 
-                  placeholder="Ej: Clínica cerrada por vacaciones de verano"
+                  placeholder="Ej: Estetica cerrada por vacaciones de verano"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 bg-white"
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}

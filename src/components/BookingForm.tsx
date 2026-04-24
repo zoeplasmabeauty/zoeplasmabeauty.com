@@ -7,7 +7,7 @@
  * 2. Validación de reglas de negocio (Bloqueo de domingos y fechas pasadas, validación de inputs).
  * 3. Comunicación con la API de turnos y la API de Disponibilidad.
  * 4. UX Responsiva: Evita el solapamiento visual mediante una grilla expandida.
- * 5. Flujo Médico: Redirección automática al Paso 2 (Ficha Clínica).
+ * 5. Flujo Médico: Redirección automática al Paso 2 (Ficha estetcia).
  * 6. Lógica de selección anidada (Categoría -> Variante).
  * 7. Gestión de Bloqueos (Vacaciones).
  * "Flujo de Evaluación Abierta" para la categoría de Skin Regeneration.
@@ -108,7 +108,7 @@ export default function BookingForm() {
         grouped["Tratamiento de estrias con plasma fibroblast"].push(service);
       } else if (service.name.includes("lesiones benignas")) {
         grouped["Eliminacion de lesiones benignas"].push(service);
-      } else if (service.name.includes("Skin regeneration") || service.name.includes("Evaluación Clínica")) {
+      } else if (service.name.includes("Skin regeneration") || service.name.includes("Evaluación Estetica")) {
         // Agrupamos bajo la categoría especial
         grouped[CATEGORIA_ESPECIAL].push(service);
       } else if (service.name.includes("Plasma Fibroblast") && !service.name.includes("estrias")) {
@@ -155,7 +155,7 @@ export default function BookingForm() {
         // Verificamos si la API nos mandó la bandera de bloqueo
         if (data.status === "vacations") {
           setAvailableSlots([]);
-          setVacationMessage(data.message || "La clínica se encuentra cerrada en esta fecha.");
+          setVacationMessage(data.message || "La Estetica se encuentra cerrada en esta fecha.");
         } else {
           setAvailableSlots(data.availableSlots || []);
         }
@@ -232,7 +232,7 @@ export default function BookingForm() {
       }
 
       // ========================================================================
-      // REDIRECCIÓN AL PASO 2 (FICHA CLÍNICA)
+      // REDIRECCIÓN AL PASO 2 (FICHA ESTETICA)
       // ========================================================================
       if (result.appointmentId) {
         // Redirigimos al usuario dinámicamente usando el ID del turno recién creado
@@ -268,7 +268,7 @@ export default function BookingForm() {
       <div className="p-8 text-center bg-green-50 rounded-xl border border-green-200">
         <h3 className="text-2xl font-semibold text-green-800 mb-2">¡Paso 1 Completado!</h3>
         <p className="text-green-700">
-          Por favor, completa tu ficha clínica para continuar con la reserva.
+          Por favor, completa tu ficha estetica para continuar con la reserva.
         </p>
         <button 
           onClick={() => setSubmitStatus('idle')}
@@ -397,7 +397,7 @@ export default function BookingForm() {
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 shadow-sm transform transition-all duration-300">
               <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Reserva por Evaluación Clínica
+                Reserva por Evaluación Estetica
               </h4>
               <p className="text-sm text-orange-900 leading-relaxed">
                 Este tratamiento requiere una evaluación presencial previa para determinar qué tecnología necesita tu piel <span className="font-semibold">(Dermapen, Dermaplaning, Peeling o Exosomas)</span>. 
@@ -529,7 +529,7 @@ export default function BookingForm() {
                   </svg>
                 </div>
                 <p className="text-sm leading-relaxed text-blue-900 font-medium">
-                  Al reservar su turno debe completar la <span className="font-bold">ficha estética clínica</span> para su posterior revisión y aprobación. Una vez que sea aprobada, podremos confirmar el turno solicitado.
+                  Al reservar su turno debe completar la <span className="font-bold">ficha estética</span> para su posterior revisión y aprobación. Una vez que sea aprobada, podremos confirmar el turno solicitado.
                 </p>
               </div>
             </div>

@@ -104,7 +104,7 @@ export default function SobreMiPage() {
               Fui una de las primeras profesionales en incorporar la tecnología <strong className="text-[var(--color-zoe-dark)]">Plasma Fibroblast</strong> en Argentina, desarrollando mi práctica desde los inicios de esta técnica. Encontré en ella una combinación de precisión, ciencia y resultados progresivos que reflejan mi filosofía: acompañar la piel respetando su biología sin recurrir a cirugías.
             </p>
             <p>
-              Así nació <strong className="text-[var(--color-zoe-dark)]">Zoe Plasma Beauty</strong> (como evolución de mi primer espacio, <em>Making Beauty Estética</em>), consolidando un enfoque de trabajo basado en la observación clínica, la personalización absoluta y el respeto por los procesos naturales de tu rostro.
+              Así nació <strong className="text-[var(--color-zoe-dark)]">Zoe Plasma Beauty</strong> (como evolución de mi primer espacio, <em>Making Beauty Estética</em>), consolidando un enfoque de trabajo basado en la observación estetica, la personalización absoluta y el respeto por los procesos naturales de tu rostro.
             </p>
           </div>
 

@@ -53,7 +53,7 @@ export default function SuccessPage() {
         </h2>
 
         {/* 3. INSTRUCCIONES POST-COMPRA (Manejo de Expectativas) */}
-        {/* Caja gris suave para destacar claramente los siguientes pasos del protocolo de la clínica */}
+        {/* Caja gris suave para destacar claramente los siguientes pasos del protocolo de la estetica */}
         <div className="bg-gray-50 rounded-2xl p-6 text-left mb-10 border border-gray-100">
           <p className="text-sm text-gray-600 mb-4 flex items-start">
             <span className="mr-3 text-stone-800 font-bold">1.</span>

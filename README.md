@@ -34,7 +34,7 @@ Este proyecto está orquestado utilizando las mejores herramientas del mercado a
    * Cálculo matemático en tiempo real para evitar solapamiento de turnos.
    * Zonas horarias forzadas (`America/Argentina/Buenos_Aires`) para evitar desfases de servidor.
 2. **Flujo de Triage Médico (Máquina de Estados):**
-   * Los pacientes deben llenar una Ficha Clínica rigurosa antes de poder pagar.
+   * Los pacientes deben llenar una Ficha estetica rigurosa antes de poder pagar.
    * El turno pasa por estados: `awaiting_triage` ➔ `under_review` ➔ `approved_unpaid` ➔ `confirmed`.
 3. **Panel de Administración Blindado:**
    * Dashboard privado protegido por JWT y Cookies de sesión HTTP-Only.

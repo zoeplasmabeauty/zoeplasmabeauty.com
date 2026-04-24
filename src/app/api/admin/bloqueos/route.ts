@@ -8,7 +8,7 @@
  * 1. Autenticación: Validar la sesión del administrador en cada petición.
  * 2. GET: Obtener la lista completa de fechas bloqueadas.
  * 3. POST: Insertar un nuevo rango de bloqueo.
- * 4. DELETE: Eliminar un bloqueo existente si la clínica decide abrir.
+ * 4. DELETE: Eliminar un bloqueo existente si la estetica decide abrir.
  */
 
 import { NextResponse } from 'next/server';

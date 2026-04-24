@@ -4,7 +4,7 @@
  * * PROPÓSITO ESTRATÉGICO:
  * Actuar como el "Radar de Colisiones" del calendario. Calcula matemáticamente 
  * qué bloques de 30 minutos están libres en un día específico, cruzando el horario 
- * de apertura de la clínica, la duración del tratamiento deseado y los turnos ya existentes.
+ * de apertura de la estetica, la duración del tratamiento deseado y los turnos ya existentes.
  * Bloquea la agenda con los estados reales del turno en la BD
  * ('confirmed', 'under_review', etc.) y se integró la lectura de 'customDurationMinutes'
  * para respetar las reprogramaciones de tiempo personalizadas del Administrador.
@@ -27,7 +27,7 @@ import { addMinutes, parseISO, isBefore, isAfter } from 'date-fns';
 
 export const runtime = 'edge';
 
-// CONFIGURACIÓN DE LA CLÍNICA (Reglas estáticas)
+// CONFIGURACIÓN DE LA ESTETICA (Reglas estáticas)
 const INTERVALO_MINUTOS = 30; // Bloques de media hora
 const HORA_CIERRE = 18;
 
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ 
         availableSlots: [], 
         status: "vacations",
-        message: bloqueosActivos[0].reason || "La clínica se encuentra cerrada en esta fecha." 
+        message: bloqueosActivos[0].reason || "La Estetica se encuentra cerrada en esta fecha." 
       }, { status: 200 });
     }
 

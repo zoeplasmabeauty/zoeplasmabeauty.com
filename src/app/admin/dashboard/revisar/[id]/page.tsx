@@ -2,11 +2,11 @@
  * ARCHIVO: src/app/admin/dashboard/revisar/[id]/page.tsx
  * ARQUITECTURA: Server Component (Next.js App Router)
  * * PROPÓSITO ESTRATÉGICO:
- * Extraer de forma segura y unificada toda la información clínica y personal 
+ * Extraer de forma segura y unificada toda la información estetica y personal 
  * de un paciente específico para el proceso de Triage (Aprobación/Rechazo).
  * * RESPONSABILIDADES:
  * 1. Validación Paramétrica: Asegurar que el ID del turno solicitado exista.
- * 2. Extracción Multi-Tabla (JOIN): Unir Turnos, Pacientes, Servicios y Fichas Clínicas en una sola consulta.
+ * 2. Extracción Multi-Tabla (JOIN): Unir Turnos, Pacientes, Servicios y Fichas Esteticas en una sola consulta.
  * 3. Inyección Segura: Pasar estos datos formateados al componente cliente interactivo 
  * (ReviewTriageClient) sin exponer la lógica de la base de datos al navegador.
  */

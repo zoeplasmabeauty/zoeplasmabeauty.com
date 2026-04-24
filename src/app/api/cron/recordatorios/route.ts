@@ -89,7 +89,7 @@ export async function GET(request: Request) {
       and(
         gte(appointments.appointmentDate, startOfDayUTC.toISOString()),
         lt(appointments.appointmentDate, endOfDayUTC.toISOString()),
-        // Solo mandamos recordatorio a quienes tienen turno confirmado o aprobado pendiente de pago en clínica
+        // Solo mandamos recordatorio a quienes tienen turno confirmado o aprobado pendiente de pago en estetica
         inArray(appointments.status, ['confirmed', 'approved_unpaid']) 
       )
     );

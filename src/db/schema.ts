@@ -13,7 +13,7 @@
  * 3. Validación de Capa de Datos: Impedir mediante restricciones (notNull, unique) que 
  * entren datos corruptos o incompletos al sistema.
  * 4. Gestiona el costo total de los tratamientos vs la seña.
- * 5. Incorpora la Máquina de Estados de Aprobación y la Ficha Clínica (Triage).
+ * 5. Incorpora la Máquina de Estados de Aprobación y la Ficha estetica (Triage).
  * 6. Gestiona los bloqueos temporales de agenda (Vacaciones/Cierres).
  */
 
@@ -27,7 +27,7 @@ import { sql } from "drizzle-orm";
 export const patients = sqliteTable("patients", {
   id: text("id").primaryKey(),
   
-  // DNI como identificador único humano para evitar duplicidad de fichas clínicas.
+  // DNI como identificador único humano para evitar duplicidad de fichas esteticas.
   dni: text("dni").notNull().unique(), // <- NUEVA COLUMNA CRÍTICA Y ÚNICA
   
   fullName: text("full_name").notNull(),
@@ -108,7 +108,7 @@ export const appointments = sqliteTable("appointments", {
   // Controla en qué punto del embudo de aprobación y pago se encuentra el turno.
   // ====================================================================
   status: text("status", { enum: [
-    "awaiting_triage", // 1. El paciente eligió hora pero no ha enviado su ficha clínica.
+    "awaiting_triage", // 1. El paciente eligió hora pero no ha enviado su ficha estetica.
     "under_review",    // 2. Ficha recibida. El admin debe evaluar si es apto.
     "approved_unpaid", // 3. Admin aprobó. Esperando el pago de seña en Mercado Pago.
     "confirmed",       // 4. Pago recibido. Turno 100% oficial.
@@ -119,7 +119,7 @@ export const appointments = sqliteTable("appointments", {
     .notNull()
     .default("awaiting_triage"),
   
-  // Notas internas clínicas o mensajes dejados por el paciente durante la reserva
+  // Notas internas esteticas o mensajes dejados por el paciente durante la reserva
   notes: text("notes"),
   
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -128,61 +128,48 @@ export const appointments = sqliteTable("appointments", {
 });
 
 // -----------------------------------------------------------------------------
-// TABLA 4: FICHAS CLÍNICAS (Triage y Anamnesis)
+// TABLA 4: FICHAS ESTETICAS (Triage y Anamnesis)
 // Responsabilidad: Almacenar las respuestas del formulario de salud para proteger 
-// legal y médicamente a la clínica. Se vincula al turno específico.
+// legal y médicamente a la estetica. Se vincula al turno específico.
 // -----------------------------------------------------------------------------
-export const medicalRecords = sqliteTable("medical_records", {
-  id: text("id").primaryKey(),
+export const medicalRecords = sqliteTable('medical_records', {
+  id: text('id').primaryKey(),
+  appointmentId: text('appointment_id').notNull().references(() => appointments.id, { onDelete: 'cascade' }),
   
-  // Vínculo directo con el turno (1 Turno = 1 Ficha para evaluar su estado particular ese día)
-  appointmentId: text("appointment_id")
-    .notNull()
-    .references(() => appointments.id, { onDelete: "cascade" }),
-
-  // SECCIÓN 3: Antecedentes de Salud
-  hasDisease: integer("has_disease", { mode: "boolean" }).notNull(),
-  diseaseDetails: text("disease_details"),
-  recentSurgery: text("recent_surgery"),
-  coagulationDisorder: integer("coagulation_disorder", { mode: "boolean" }).notNull(),
-  takesMedication: integer("takes_medication", { mode: "boolean" }).notNull(),
-  medicationDetails: text("medication_details"),
-  allergies: text("allergies"),
-
-  // SECCIÓN 4: Evaluación Cutánea
-  skinType: text("skin_type", { enum: ["Seca", "Mixta", "Grasa", "Sensible", "Reactiva"] }).notNull(),
-  usesRetinoids: integer("uses_retinoids", { mode: "boolean" }).notNull(),
-  retinoidsDetails: text("retinoids_details"),
-  usesSunscreen: integer("uses_sunscreen", { mode: "boolean" }).notNull(),
-
-  // SECCIÓN 5: Hábitos
-  smokes: integer("smokes", { mode: "boolean" }).notNull(),
-  drinksAlcohol: integer("drinks_alcohol", { mode: "boolean" }).notNull(),
-
-  // SECCIÓN 6: Salud Hormonal
-  pregnantNursing: integer("pregnant_nursing", { mode: "boolean" }).notNull(),
-  lastMenstrualCycle: text("last_menstrual_cycle"),
-  contraceptive: text("contraceptive"),
-
-  // SECCIÓN 7: Antecedentes Estéticos y Contraindicaciones
-  recentAestheticTreatments: integer("recent_aesthetic_treatments", { mode: "boolean" }).notNull(),
-  treatmentDetails: text("treatment_details"),
+  // Anamnesis
+  underMedicalTreatment: integer('under_medical_treatment').notNull(),
+  medicalTreatmentDetails: text('medical_treatment_details'),
+  takesMedication: integer('takes_medication').notNull(),
+  medicationDetails: text('medication_details'),
+  recentSurgery: integer('recent_surgery').notNull(),
+  surgeryDetails: text('surgery_details'),
+  allergies: integer('allergies').notNull(),
+  allergiesDetails: text('allergies_details'),
+  usesRetinoids: integer('uses_retinoids').notNull(),
+  retinoidsDetails: text('retinoids_details'),
+  usesSunscreen: integer('uses_sunscreen').notNull(),
   
-  // Guardaremos las contraindicaciones seleccionadas como un string JSON (array). 
-  // Ej: '["Uso de marcapasos", "Diabetes no controlada"]'
-  contraindications: text("contraindications"), 
+  // Hábitos
+  smokes: integer('smokes').notNull(),
+  drinksAlcohol: integer('drinks_alcohol').notNull(),
+  conditions: text('conditions'), // JSON Stringified Array
+  observations: text('observations'),
   
-  // Firma digital / Checkbox de consentimiento (Protección legal)
-  consentGiven: integer("consent_given", { mode: "boolean" }).notNull(),
-
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  // Evaluación Estética
+  skinType: text('skin_type').notNull(),
+  skinStatus: text('skin_status'), // JSON Stringified Array
+  recentAestheticTreatments: integer('recent_aesthetic_treatments').notNull(),
+  treatmentDetails: text('treatment_details'),
+  
+  // Firma y Consentimiento
+  signature: text('signature').notNull(),
+  consentGiven: integer('consent_given').notNull(),
+  createdAt: integer('created_at').default(sql`(unixepoch())`),
 });
 
 // -----------------------------------------------------------------------------
 // TABLA 5: FECHAS BLOQUEADAS (Vacaciones / Cierres)
-// Responsabilidad: Almacenar rangos de fechas donde la clínica no atenderá.
+// Responsabilidad: Almacenar rangos de fechas donde la estetica no atenderá.
 // El motor de disponibilidad leerá esta tabla para anular el calendario en el frontend.
 // -----------------------------------------------------------------------------
 export const blockedDates = sqliteTable("blocked_dates", {

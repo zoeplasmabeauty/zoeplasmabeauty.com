@@ -70,7 +70,7 @@ export default async function FichaClinicaPage({ params }: { params: { id: strin
         <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-lg border border-gray-100">
           <h2 className="mb-4 text-2xl font-bold text-stone-800">Ficha ya enviada</h2>
           <p className="text-stone-600">
-            Este turno ya tiene una ficha clínica asociada o se encuentra en revisión. 
+            Este turno ya tiene una ficha estetica asociada o se encuentra en revisión. 
             Te contactaremos por correo electrónico pronto.
           </p>
         </div>

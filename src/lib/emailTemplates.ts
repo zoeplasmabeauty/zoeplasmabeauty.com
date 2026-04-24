@@ -172,7 +172,7 @@ export const getAdminTriageAlertEmail = ({
         <div style="padding: 40px 30px; text-align: center;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 22px; margin-top: 0;">🚨 Triage Pendiente</h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 16px;">
-            El paciente <strong>${patientName}</strong> acaba de completar su Ficha Clínica y Anamnesis.
+            El paciente <strong>${patientName}</strong> acaba de completar su Ficha Estetica y Anamnesis.
           </p>
           
           <div style="background-color: #fff9e6; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
@@ -184,7 +184,7 @@ export const getAdminTriageAlertEmail = ({
           <div style="margin: 40px 0;">
             <a href="${baseUrl}/admin/dashboard/revisar/${appointmentId}" 
                style="background-color: ${THEME.primaryLight}; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(86, 141, 205, 0.2);">
-              Revisar Ficha Clínica
+              Revisar Ficha Estetica
             </a>
           </div>
           
@@ -230,7 +230,7 @@ export const getApprovalEmail = ({
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Nuestro equipo de especialistas ha revisado tu Ficha Clínica y nos alegra confirmarte que <strong>eres apto/a</strong> para el tratamiento de <strong>${serviceName}</strong>.
+            Nuestro equipo de especialistas ha revisado tu Ficha Estetica y nos alegra confirmarte que <strong>eres apto/a</strong> para el tratamiento de <strong>${serviceName}</strong>.
           </p>
           
           <div style="background-color: #f4f7fb; border-left: 4px solid ${THEME.primaryLight}; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
@@ -317,11 +317,11 @@ export const getRejectionEmail = ({
         <div style="padding: 40px 30px;">
           <h2 style="color: ${THEME.textDark}; font-weight: 300; font-size: 20px; margin-top: 0;">Hola, <strong>${patientName}</strong></h2>
           <p style="line-height: 1.6; color: ${THEME.textMuted}; font-size: 15px;">
-            Nuestro equipo de especialistas ha evaluado cuidadosamente tu Ficha Clínica. Priorizando siempre tu salud y seguridad, hemos determinado que en este momento <strong>no es seguro proceder con el tratamiento de ${serviceName}</strong>.
+            Nuestro equipo de especialistas ha evaluado cuidadosamente tu Ficha Estetica. Priorizando siempre tu salud y seguridad, hemos determinado que en este momento <strong>no es seguro proceder con el tratamiento de ${serviceName}</strong>.
           </p>
           
           <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 0 8px 8px 0; margin: 30px 0;">
-            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Motivo de la decisión clínica:</p>
+            <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 14px; font-weight: 600; text-transform: uppercase;">Motivo de la decisión estetica:</p>
             <p style="margin: 0; color: #b91c1c; font-size: 15px; line-height: 1.6; font-style: italic;">
               "${rejectionReason}"
             </p>
@@ -474,7 +474,7 @@ export const getReminderEmail = ({
             <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Horario</p>
             <p style="margin: 0 0 15px 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">${timeFormatted}</p>
 
-            <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Saldo restante a abonar en clínica</p>
+            <p style="margin: 0 0 5px 0; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 1px;">Saldo restante a abonar en la estetica</p>
             <p style="margin: 0; font-weight: bold; font-size: 16px; color: ${THEME.textDark};">$${saldoRestante}</p>
           </div>
           

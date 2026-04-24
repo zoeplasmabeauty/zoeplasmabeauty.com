@@ -53,39 +53,38 @@ CREATE TABLE blocked_dates (
 	created_at integer DEFAULT (unixepoch()) NOT NULL
 );
 
--- Tabla de Fichas Clínicas
+-- Tabla de Fichas Esteticas
 CREATE TABLE medical_records (
   id TEXT PRIMARY KEY NOT NULL,
   appointment_id TEXT NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
   
-  -- Sección 3: Antecedentes
-  has_disease INTEGER NOT NULL,
-  disease_details TEXT,
-  recent_surgery TEXT,
-  coagulation_disorder INTEGER NOT NULL,
+  -- Sección: Anamnesis | Declaración
+  under_medical_treatment INTEGER NOT NULL, -- 0: No, 1: Si
+  medical_treatment_details TEXT,
   takes_medication INTEGER NOT NULL,
   medication_details TEXT,
-  allergies TEXT,
-  
-  -- Sección 4: Evaluación Cutánea
-  skin_type TEXT NOT NULL,
+  recent_surgery INTEGER NOT NULL,
+  surgery_details TEXT,
+  allergies INTEGER NOT NULL,
+  allergies_details TEXT,
   uses_retinoids INTEGER NOT NULL,
   retinoids_details TEXT,
   uses_sunscreen INTEGER NOT NULL,
   
-  -- Sección 5: Hábitos
+  -- Sección: Hábitos y Condiciones
   smokes INTEGER NOT NULL,
   drinks_alcohol INTEGER NOT NULL,
+  conditions TEXT, -- Guardaremos el array de checkboxes (Embarazo, Diabetes, etc.) como JSON string
+  observations TEXT,
   
-  -- Sección 6: Salud Hormonal
-  pregnant_nursing INTEGER NOT NULL,
-  last_menstrual_cycle TEXT,
-  contraceptive TEXT,
-  
-  -- Sección 7: Estética y Riesgos
+  -- Sección: Evaluación Estética (No Médica)
+  skin_type TEXT NOT NULL, -- Normal, Seca, Mixta, Grasa, Deshidratada
+  skin_status TEXT, -- Guardaremos el array (Sensible, Manchas, etc.) como JSON string
   recent_aesthetic_treatments INTEGER NOT NULL,
   treatment_details TEXT,
-  contraindications TEXT,
+  
+  -- Sección: Declaración y Firma
+  signature TEXT NOT NULL, -- Nombre completo del paciente que actúa como firma
   consent_given INTEGER NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );

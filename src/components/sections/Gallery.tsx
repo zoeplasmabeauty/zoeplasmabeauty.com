@@ -61,7 +61,7 @@ export default function Gallery() {
         {/* ENCABEZADO DE LA SECCIÓN */}
         <div className="mb-16 text-center">
           <span className="mb-4 inline-block font-mono text-sm font-bold tracking-widest text-[var(--color-zoe-blue)] uppercase">
-            Evidencia Clínica
+            Evidencia Estetica
           </span>
           <h2 className="text-4xl font-extrabold tracking-tight text-[var(--color-zoe-dark)] sm:text-5xl">
             Antes y <span className="text-[var(--color-zoe-blue)]">Después</span>

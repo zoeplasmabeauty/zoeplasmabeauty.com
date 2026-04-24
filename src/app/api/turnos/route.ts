@@ -153,11 +153,11 @@ export async function POST(request: Request) {
     
     // RESPUESTA EXITOSA FINAL AL FRONTEND:
     // No retornamos checkoutUrl. El frontend usará el appointmentId para llevar 
-    // al usuario al formulario de Ficha Clínica.
+    // al usuario al formulario de Ficha estetica.
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Paso 1 completado. Redirigiendo a la Ficha Clínica...",
+        message: "Paso 1 completado. Redirigiendo a la Ficha estetica...",
         appointmentId: newAppointment.id
       }), 
       { status: 201, headers: { 'Content-Type': 'application/json' } }

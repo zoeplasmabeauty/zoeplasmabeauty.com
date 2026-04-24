@@ -113,28 +113,6 @@ export default function Services() {
       }
     },
     {
-      title: "Eliminación de Lesiones Benignas",
-      description: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía.",
-      duration: "Aprox. 2 hrs",
-      tag: "Rápido",
-      imageUrl: "https://res.cloudinary.com/dkbpcepmt/image/upload/v1772210915/Tratamientos-20_zcedk8.jpg",
-      // INYECCIÓN CRÍTICA: ID exacto en D1
-      dbIds: ["lesiones-unica-uuid"],
-      extended: {
-        fullDescription: "Tratamiento preciso y seguro para remover imperfecciones cutáneas sin cirugía. ",
-        result: "Piel más limpia y uniforme",
-        benefits: [
-          "Acrocordones",
-          "Lentigos",
-          "Queratosis",
-          "Manchas y lesiones benignas dérmicas"
-        ],
-        priceTable: [
-          { type: "Por área corporal o facial | 2 horas", cost: "$280.000 ARS" }
-        ]
-      }
-    },
-    {
       title: "Skin Regeneration y Tratamientos Complementarios",
       description: "Tratamientos diseñados para potenciar los resultados del Plasma Fibroblast.",
       duration: "Aprox. 2 hrs", // Duración sincronizada con la base de datos
