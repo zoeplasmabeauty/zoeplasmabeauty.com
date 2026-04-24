@@ -582,7 +582,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
                 onChange={(e) => setFormData({...formData, consentGiven: e.target.checked})}
               />
               <span className="text-sm text-stone-700 leading-relaxed">
-                <strong>Declaración:</strong> DECLARO QUE: He brindado información veraz sobre mi estado de salud.
+                <strong>Declaración:</strong> Declaro que, he brindado información veraz sobre mi estado de salud.
                 He recibido explicación del procedimiento estético seleccionado.
                 He firmado el consentimiento informado y autorizo su realización dentro del ámbito estético no médico.
                 Me comprometo a seguir los cuidados indicados.
@@ -591,7 +591,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
 
             <div className="border-t border-gray-300 pt-6">
               <label className="block text-sm font-bold text-gray-800 mb-2">
-                FIRMA: (Escriba su Nombre Completo)
+                FIRMA: | Escriba su Nombre Completo
               </label>
               <input 
                 type="text" 
@@ -602,7 +602,7 @@ export default function TriageForm({ initialData }: { initialData: InitialData }
                 onChange={e => setFormData({...formData, signature: e.target.value})} 
               />
               <p className="text-xs text-stone-500 mt-2">
-                * Al escribir su nombre, usted declara bajo su responsabilidad que es consciente de la información proporcionada en este formulario.
+                * Al firmar, usted declara bajo su responsabilidad que es consciente de la información proporcionada en este formulario.
               </p>
             </div>
           </div>
