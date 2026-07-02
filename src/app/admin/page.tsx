@@ -1,4 +1,4 @@
-/**
+/** 
  * ARCHIVO: src/app/admin/page.tsx
  * ARQUITECTURA: Componente de Cliente (Client Component) en React/Next.js
  * * PROPÓSITO ESTRATÉGICO:
